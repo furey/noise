@@ -48,7 +48,7 @@ const resize = (view, grid) => {
   view.rowFills = buildRowFills(grid)
   view.gradients.clear()
   if (!view.introDone && view.intro?.delays.length !== grid.cols * grid.rows) {
-    view.intro = { ...createIntro({ cells: grid.cols * grid.rows }), elapsed: view.intro?.elapsed ?? 0 }
+    view.intro = { ...createIntro({ cols: grid.cols, rows: grid.rows, pattern: view.intro?.pattern }), elapsed: view.intro?.elapsed ?? 0 }
   }
 }
 
