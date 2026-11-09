@@ -171,6 +171,7 @@ From the home screen, Noise opens full screen, like an app. After the first visi
 - [Sleep timer](#sleep-timer)
 - [Wave mode](#wave-mode)
 - [Keyboard](#keyboard)
+- [Rounded screens](#rounded-screens)
 - [Desktop window](#desktop-window)
 - [Background play](#background-play)
 
@@ -214,9 +215,17 @@ The timer counts down only while the sound plays. In the last minute, the sound 
 
 ### Wave mode
 
-The dot in the top-left corner turns wave mode on and off. In wave mode, the colour slides to brown, then the noise breathes like the sea: it rises from brown to a random colour, holds, then eases back to brown, with a gentle swell in volume. The dot is white while wave mode is on.
+The dot in the top-left corner turns wave mode on and off. The dot is white while wave mode is on, and dim while it is off. A tap on the dot is the only way to turn wave mode on; `Esc` also turns it off.
 
-The synth changes shape in wave mode. The bars point out from the centre of the screen, each with its own white peak block, and the circle turns slowly. A drag on the colour strip moves the wave to that colour, and the wave carries on from there.
+In wave mode, the colour slides to brown. Then the noise rises and falls like waves on a beach:
+
+1. The colour rises from brown to a crest between pink and blue, most often near pink. The volume swells a little at the same time.
+2. The colour holds at the crest for `0.6`–`2.2` seconds.
+3. The colour eases back to brown and rests there for a few seconds.
+
+Each rise takes `4.5`–`8` seconds and each fall takes `5`–`9` seconds, so no two waves are the same. A tap or drag on the colour strip moves the wave to that colour, and the wave carries on from there.
+
+The synth changes shape in wave mode. The bars point out from the centre of the screen and make a circle that turns slowly, each bar with a white peak block. When you pause, the circle shrinks into the centre and empties.
 
 ### Keyboard
 
@@ -229,7 +238,11 @@ The synth changes shape in wave mode. The bars point out from the centre of the 
 | `↑` / `↓` | Turn the volume up or down by `5%`        |
 | `T`       | Move the timer to the next setting        |
 
-Screen readers get a **Play** button, a **Noise colour** slider, a **Volume** slider, and the timer button.
+Screen readers get a **Play** button, a **Noise colour** slider, a **Volume** slider, a **Wave mode** button, and the timer button.
+
+### Rounded screens
+
+On a phone with rounded screen corners, the browser reports a safe area at the top or bottom of the screen. When it does, the app moves the timer and wave dots down to the third row, clear of the corners. It also lifts the colour strip one row, with the page background below it, clear of the home bar. The app measures the safe area again after the page loads and after `500` ms, because some browsers report it late.
 
 ### Desktop window
 
@@ -323,7 +336,7 @@ Then, in a second terminal:
 | `node scripts/capture-social.mjs`  | `social.png`, the preview picture for links to the repository                      |
 | `node scripts/render-icon-gif.mjs` | `app-icon.gif` and `app-icon.png`                                                  |
 
-Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the videos. The videos in this README are GitHub attachments. To replace one, drag the new `.mp4` into a GitHub comment box, then put the new URL in this README. The sound in each video is not a recording: the script runs the noise worklet in Node.js and follows the same taps and drags as the video.
+Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the videos, and `--out <folder>` to write them somewhere other than `docs/media`. The videos in this README are GitHub attachments. To replace one, drag the new `.mp4` into a GitHub comment box, then put the new URL in this README. The [`docs-media`](https://github.com/furey/noise/releases/tag/docs-media) release keeps a copy of each file; the icon at the top of this README loads from it. The sound in each video is not a recording: the script runs the noise worklet in Node.js and follows the same taps and drags as the video.
 
 ### Build workflow
 
