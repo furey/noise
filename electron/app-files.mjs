@@ -27,13 +27,13 @@ export const isAppUrl = url => {
   }
 }
 
-export const resolveAppFile = ({ root, url }) => {
+export const resolveAppFile = ({ root, url, paths = path }) => {
   if (!isAppUrl(url)) return null
   const pathname = decodePathname(new URL(url).pathname)
   if (pathname === null || pathname.includes('\0')) return null
-  const relative = path.normalize(pathname.replace(/^\/+/, '') || 'index.html')
-  const filePath = path.resolve(root, relative)
-  return isInside({ root, filePath }) ? filePath : null
+  const relative = paths.normalize(pathname.replace(/^\/+/, '') || 'index.html')
+  const filePath = paths.resolve(root, relative)
+  return isInside({ root, filePath, paths }) ? filePath : null
 }
 
 export const serveAppFile = async ({ root, url }) => {
@@ -47,9 +47,9 @@ export const serveAppFile = async ({ root, url }) => {
 export const mimeTypeOf = filePath =>
   MIME_TYPES[path.extname(filePath).toLowerCase()] ?? 'application/octet-stream'
 
-const isInside = ({ root, filePath }) => {
-  const relative = path.relative(path.resolve(root), filePath)
-  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative)
+const isInside = ({ root, filePath, paths }) => {
+  const relative = paths.relative(paths.resolve(root), filePath)
+  return relative !== '' && !relative.startsWith('..') && !paths.isAbsolute(relative)
 }
 
 const decodePathname = pathname => {

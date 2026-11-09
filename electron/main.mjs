@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu, protocol, screen, session } from 'electron'
 import path from 'node:path'
 import { APP_ORIGIN, APP_SCHEME, isAppUrl, serveAppFile } from './app-files.mjs'
+import { createInstallAccess, grantSandboxReadAccess } from './install-access.mjs'
 import { MIN_SIZE, createWindowState } from './window-state.mjs'
 
 const BACKGROUND = '#050505'
@@ -9,11 +10,12 @@ const PAGE_URL = `${APP_ORIGIN}/index.html`
 const BLOCKED_URLS = ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*', 'file://*/*']
 const isMac = process.platform === 'darwin'
 
-const state = { window: null, windowState: null }
+const state = { window: null, windowState: null, installAccess: null }
 
 const main = () => {
   if (process.env.NOISE_USER_DATA) app.setPath('userData', process.env.NOISE_USER_DATA)
   if (!app.requestSingleInstanceLock()) return app.quit()
+  repairInstallAccess()
   protocol.registerSchemesAsPrivileged([{
     scheme: APP_SCHEME,
     privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true },
@@ -27,6 +29,7 @@ const main = () => {
   })
   app.on('second-instance', focusWindow)
   app.on('window-all-closed', () => app.quit())
+  app.on('before-quit', () => state.installAccess?.endStart())
   app.on('web-contents-created', (_event, contents) => lockDownContents(contents))
   app.whenReady().then(start)
 }
@@ -60,12 +63,14 @@ const createWindow = () => {
       webSecurity: true,
       spellcheck: false,
       devTools: !app.isPackaged,
-      backgroundThrottling: false,
     },
   })
   if (!isMac) window.setMenuBarVisibility(false)
-  window.once('ready-to-show', () => revealWindow({ window, maximized }))
-  setTimeout(() => revealWindow({ window, maximized }), SHOW_FALLBACK_MS).unref?.()
+  const showFallback = setTimeout(() => revealWindow({ window, maximized }), SHOW_FALLBACK_MS)
+  window.once('ready-to-show', () => {
+    clearTimeout(showFallback)
+    revealWindow({ window, maximized })
+  })
   window.on('close', () => rememberBounds(window))
   window.on('closed', () => {
     state.window = null
@@ -78,6 +83,15 @@ const revealWindow = ({ window, maximized }) => {
   if (window.isDestroyed() || window.isVisible()) return
   if (maximized) window.maximize()
   window.show()
+  state.installAccess?.endStart()
+}
+
+const repairInstallAccess = () => {
+  if (process.platform !== 'win32' || !app.isPackaged) return
+  state.installAccess = createInstallAccess({ folder: app.getPath('userData'), electronVersion: process.versions.electron })
+  if (!state.installAccess.needsRepair(state.installAccess.beginStart())) return
+  state.installAccess.markRepaired()
+  grantSandboxReadAccess(path.dirname(process.execPath))
 }
 
 const rememberBounds = window => {

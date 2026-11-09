@@ -24,6 +24,8 @@ module.exports = {
     enableCookieEncryption: true,
     enableNodeOptionsEnvironmentVariable: false,
     onlyLoadAppFromAsar: true,
+    enableEmbeddedAsarIntegrityValidation: true,
+    grantFileProtocolExtraPrivileges: false,
     loadBrowserProcessSpecificV8Snapshot: false
   },
   mac: {

@@ -59,6 +59,27 @@ test('tapping the synth starts audio that is not silent', { timeout: TEST_TIMEOU
   })
 })
 
+test('an interrupted audio output shows as paused, and the next tap plays again', { timeout: TEST_TIMEOUT_MS }, async () => {
+  await withApp(async ({ page, watch }) => {
+    await page.click('#surface')
+    await waitFor({ page, ms: SOUND_WITHIN_MS, what: 'non-silent running audio', check: () => window.__noiseTest.sounding() })
+    await page.evaluate(() => window.__noiseTest.analysers[0].context.suspend())
+    await waitFor({ page, ms: STOP_WITHIN_MS, what: 'the paused state after a suspended context', check: () => !document.body.classList.contains('playing') })
+    await page.click('#surface')
+    await waitFor({ page, ms: SOUND_WITHIN_MS, what: 'audio after the interruption', check: () => window.__noiseTest.sounding() })
+    await page.evaluate(() => window.__noiseTest.elements.forEach(element => element.pause()))
+    await waitFor({ page, ms: STOP_WITHIN_MS, what: 'the paused state after a paused output', check: () => !document.body.classList.contains('playing') })
+    assert.equal(await page.evaluate(() => window.__noiseTest.contexts.size), 1)
+    assert.deepEqual(watch.errors, [])
+  })
+})
+
+test('background throttling stays on so a minimised window stops drawing', { timeout: TEST_TIMEOUT_MS }, async () => {
+  await withApp(async ({ app }) => {
+    assert.equal(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].webContents.getBackgroundThrottling()), true)
+  })
+})
+
 test('navigation away from app://noise and new windows are blocked', { timeout: TEST_TIMEOUT_MS }, async () => {
   await withApp(async ({ app, page, watch }) => {
     await page.evaluate(() => {
@@ -84,16 +105,22 @@ test('a second start focuses the open window and quits', { timeout: TEST_TIMEOUT
 })
 
 const INIT_SCRIPT = () => {
-  const noiseTest = { csp: [], analysers: [] }
+  const noiseTest = { csp: [], analysers: [], contexts: new Set(), elements: new Set() }
   window.__noiseTest = noiseTest
   addEventListener('securitypolicyviolation', event => noiseTest.csp.push(`${event.violatedDirective} ${event.blockedURI}`))
   const createAnalyser = BaseAudioContext.prototype.createAnalyser
   BaseAudioContext.prototype.createAnalyser = function () {
     const analyser = createAnalyser.call(this)
     noiseTest.analysers.push(analyser)
+    noiseTest.contexts.add(this)
     return analyser
   }
-  noiseTest.sounding = () => noiseTest.analysers.some(analyser => {
+  const play = HTMLMediaElement.prototype.play
+  HTMLMediaElement.prototype.play = function () {
+    noiseTest.elements.add(this)
+    return play.call(this)
+  }
+  noiseTest.sounding = () => document.body.classList.contains('playing') && noiseTest.analysers.some(analyser => {
     if (analyser.context.state !== 'running') return false
     const samples = new Float32Array(analyser.fftSize)
     analyser.getFloatTimeDomainData(samples)
