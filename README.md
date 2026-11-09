@@ -184,6 +184,8 @@ The screen has two parts: the synth, which fills most of the screen, and the col
 - **Colour**: tap or drag along the colour strip. A white block, three cells wide and three cells high, marks the colour you hear.
 - **Volume**: while the sound plays, drag up or down on the synth, from `10%` to `100%`. At a louder volume, the bars are taller and more particles fly off them.
 
+When the app opens, the grid stays black for `300` ms, then the blocks fade in over about `0.8` seconds. Each launch picks a pattern at random: scattered, up, down, left, right, out from the centre, or in from the edges. If your device asks for reduced motion, the grid shows at once.
+
 With a mouse, the pointer shows what a click or drag does: a hand on the synth while the sound is stopped, up and down arrows on the synth while it plays, and left and right arrows on the colour strip.
 
 The desktop app:
