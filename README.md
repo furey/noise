@@ -182,7 +182,7 @@ The screen has two parts: the synth, which fills most of the screen, and the col
 - **Colour**: tap or drag along the colour strip. A white block, three cells wide and three cells high, marks the colour you hear.
 - **Volume**: while the sound plays, drag up or down on the synth, from `10%` to `100%`. At a louder volume, the bars are taller and more particles fly off them.
 
-With a mouse, the pointer shows what a click or drag does: a hand on the synth while the sound is stopped, up and down arrows on the synth while it plays, left and right arrows on the colour strip, and an hourglass on the timer.
+With a mouse, the pointer shows what a click or drag does: a hand on the synth while the sound is stopped, up and down arrows on the synth while it plays, and left and right arrows on the colour strip.
 
 The desktop app:
 
