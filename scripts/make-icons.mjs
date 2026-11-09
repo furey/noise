@@ -9,6 +9,7 @@ const SOURCES = join(ROOT, 'build', 'icon-source')
 const MASTER = join(SOURCES, 'icon.svg')
 const FAVICON = join(SOURCES, 'favicon.svg')
 const MASKABLE = join(SOURCES, 'icon-maskable.svg')
+const TOUCH = join(SOURCES, 'icon-touch.svg')
 const SMALL_ICON_MAX = 32
 const LINUX_SIZES = [16, 32, 48, 64, 128, 256, 512]
 const ICO_SIZES = [16, 24, 32, 48, 64, 128, 256]
@@ -54,7 +55,7 @@ const makeWeb = () => {
   render({ source: MASTER, size: 512, out: join(web, 'icon-512.png') })
   render({ source: MASKABLE, size: 512, out: join(web, 'icon-maskable-512.png') })
   const touch = renderToBuffer({
-    source: MASKABLE,
+    source: TOUCH,
     size: APPLE_TOUCH_SIZE,
     background: APPLE_TOUCH_BACKGROUND,
   })
