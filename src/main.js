@@ -16,7 +16,7 @@ const start = () => {
   const engine = createEngine()
   const app = createApp({ engine, settings: loadSettings(), persist: saveSettings })
   const view = createView(document)
-  const synth = createSynth({ spec: $('spec'), fx: $('fx'), burstKind: new URLSearchParams(location.search).get('burst') ?? 'breaker' })
+  const synth = createSynth({ spec: $('spec'), fx: $('fx') })
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
   const layout = { grid: null }
   const frame = { dt: 0, now: 0, playing: false, pos: 0, volume: 0, timer: null, wave: false, analyser: null, sampleRate: 48000, reducedMotion: false }
@@ -66,9 +66,8 @@ const measureLayout = () => {
   const spec = $('spec')
   const width = spec.clientWidth || innerWidth
   const height = spec.clientHeight || innerHeight
-  const param = new URLSearchParams(location.search).get('frame')
-  const framed = param === null ? false : Number(param) || true
-  return measureGrid({ width, height, dpr: backingDpr(width, height), insets: readInsets(), framed })
+  const insets = readInsets()
+  return measureGrid({ width, height, dpr: backingDpr(width, height), insets, framed: isFramedScreen(insets) })
 }
 
 const backingDpr = (width, height) =>
@@ -90,6 +89,13 @@ const watchPixelRatio = onChange => {
     onChange()
     watchPixelRatio(onChange)
   }, { once: true })
+}
+
+const isFramedScreen = insets => {
+  const param = new URLSearchParams(location.search).get('frame')
+  if (param !== null) return Number(param) || true
+  const fullScreen = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true
+  return fullScreen && (insets.top > 0 || insets.bottom > 0)
 }
 
 const readInsets = () => {

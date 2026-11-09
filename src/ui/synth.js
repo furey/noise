@@ -1,7 +1,7 @@
 import { COLOUR_ROW_SHADES, LAST, LIGHT_INK, colourAt, inkRgb, isDarkInk, paletteFor, rgba, shadeRgb } from './colours.js'
 import { COLOUR_ROWS, fillCell, fillScreenCell, inTimer } from './grid.js'
-import { drawBurst, isBurstLive } from './burst.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
+import { applyDither, createDither, isDitherSettled, paintBackground, stepDither } from './dither.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
 import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
@@ -14,11 +14,10 @@ const SELECTOR_FILL = rgba(LIGHT_INK, 1)
 const FRAME_FILL = '#050505'
 const FRAME_CELL = 'rgba(255,255,255,.04)'
 
-export const createSynth = ({ spec, fx, burstKind = 'breaker' }) => {
+export const createSynth = ({ spec, fx }) => {
   const view = {
-    spec, fx, burstKind,
-    burst: null,
-    wasWave: false,
+    spec, fx,
+    dither: createDither(),
     g: spec.getContext('2d'),
     fg: fx.getContext('2d'),
     grid: null,
@@ -60,15 +59,17 @@ const draw = (view, frame) => {
   const tintSettled = stepTint(view, frame)
   const palette = paletteFor(frame)
   const size = timerSize(frame.timer)
+  const dithering = stepDither(view.dither, frame)
   view.g.clearRect(0, 0, view.spec.width, view.spec.height)
+  if (dithering) paintBackground({ g: view.g, grid, pos: frame.pos, playing: frame.playing })
   drawBars({ view, palette, size, playing: frame.playing })
   drawChips(view, size)
   drawColourRows(view, frame.pos)
   drawTimer({ view, frame, palette, size })
-  drawFrame(view)
   const pixelCount = drawPixels({ view, frame, palette, size })
-  const bursting = stepBurst(view, frame)
-  return bursting || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
+  if (dithering) ditherScreen(view, frame)
+  drawFrame(view)
+  return !isDitherSettled(view.dither, frame.wave) || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
 }
 
 const updateLevels = (view, { analyser, playing, sampleRate, volume }) => {
@@ -142,12 +143,10 @@ const drawTimer = ({ view, frame, palette, size }) => {
   }
 }
 
-const stepBurst = (view, frame) => {
-  if (frame.wave && !view.wasWave) view.burst = { kind: view.burstKind, start: frame.now }
-  view.wasWave = frame.wave
-  if (!isBurstLive(view.burst, frame.now)) return false
-  drawBurst({ g: view.fg, grid: view.grid, burst: view.burst, now: frame.now, pos: frame.pos })
-  return true
+const ditherScreen = (view, frame) => {
+  const { g, spec, fx, fg, grid, dither } = view
+  applyDither({ dither, g, spec, fx, grid, now: frame.now, reducedMotion: frame.reducedMotion })
+  fg.clearRect(0, 0, fx.width, fx.height)
 }
 
 const drawFrame = ({ g, grid }) => {
