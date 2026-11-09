@@ -31,13 +31,13 @@
     "dist:linux": "npm run dist -- --linux"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "9.39.5",
     "electron": "44.10.2",
     "electron-builder": "26.18.0",
-    "eslint": "^9.39.1",
-    "globals": "^17.14.0",
+    "eslint": "9.39.5",
+    "globals": "17.14.0",
     "playwright-core": "1.64.1",
-    "vite": "^7.2.2"
+    "vite": "7.3.7"
   },
   "overrides": {
     "app-builder-lib": {
