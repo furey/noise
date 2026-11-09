@@ -58,14 +58,14 @@ const draw = (view, frame) => {
   const palette = paletteFor(frame)
   const size = timerSize(frame.timer)
   const { radial } = view
-  stepRadial(radial, { levels: view.spectrum.levels, dt: frame.dt, volume: frame.volume, wave: frame.wave, reducedMotion: frame.reducedMotion, t: frame.now / 1000 })
+  stepRadial(radial, { levels: view.spectrum.levels, dt: frame.dt, volume: frame.volume, wave: frame.wave, playing: frame.playing, linearEmpty: isLinearEmpty(view), reducedMotion: frame.reducedMotion, t: frame.now / 1000 })
   const linear = radial.morph === 0
   const ink = inkStyle(view, 1)
   view.g.clearRect(0, 0, view.spec.width, view.spec.height)
   drawBars({ view, palette, size, playing: frame.playing, scale: linearShare(radial) })
   if (linear) drawChips(view, size)
   else drawRadial({ g: view.g, grid, radial, size, palette, ink })
-  drawFlock({ g: view.g, grid, radial, chips, size, ink })
+  drawFlock({ g: view.g, grid, radial, chips, size, ink, playing: frame.playing })
   drawColourRows(view, frame.pos)
   drawTimer({ view, frame, palette, size })
   drawWaveDot({ view, frame, palette })
@@ -73,6 +73,8 @@ const draw = (view, frame) => {
   if (!linear) hidePixels(view)
   return (radial.morph > 0 && radial.morph < 1) || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
 }
+
+const isLinearEmpty = ({ spectrum, chips }) => spectrum.levels.every(level => level < 0.02) && chips.every(chip => chip.y <= 0)
 
 const updateLevels = (view, { analyser, playing, sampleRate, volume }) => {
   if (!(analyser && playing)) return decaySpectrum(view.spectrum)

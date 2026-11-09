@@ -143,7 +143,7 @@ const SHOTS = {
     devices: [touchDevice({
       viewport: { width: 390, height: 844 }, dpr: 2, x: 68, y: 68, bezel: 28, radius: 94, pointer: TOUCH,
       insets: PHONE_INSETS, settings: { pos: 0.4, volume: 0.7 },
-      script: [['wait', 1], ['tap', 'centre'], ['wait', 4], ['tap', 'wave'], ['wait', 26], ['tap', 'wave'], ['wait', 6]],
+      script: [['wait', 1], ['tap', 'wave'], ['wait', 12], ['tap', 'centre'], ['wait', 4], ['tap', 'centre'], ['wait', 8], ['tap', 'centre'], ['wait', 3], ['tap', 'wave'], ['wait', 4]],
     })],
   },
   devices: {

@@ -12,6 +12,9 @@ const INNER_SCALE = 0.55
 const INNER_SPIN = -2.5
 const PEAK_HOLD_S = 0.35
 const PEAK_FALL_PER_S = 0.5
+const STOPPED_FALL_SCALE = 3
+const EMPTY_PEAK = 0.03
+const TIP_MIN_CELLS = 0.75
 const PARTICLE_SPEED = 8
 const PARTICLE_LIFE_S = 1.3
 const EMIT_PER_S = 2.2
@@ -21,9 +24,11 @@ const FLOCK_SWIRL = 0.9
 
 export const createRadial = () => ({ radii: [], speeds: [], peaks: [], holds: [], particles: [], spin: 0, morph: 0, delays: [] })
 
-export const stepRadial = (radial, { levels, dt, volume, wave, reducedMotion, t }) => {
+export const stepRadial = (radial, { levels, dt, volume, wave, playing, linearEmpty, reducedMotion, t }) => {
   const tips = levels.length
   if (radial.radii.length !== tips) resetTips(radial, tips)
+  if (wave && !radial.morph && linearEmpty) radial.morph = 1
+  if (!wave && radial.morph === 1 && isRadialEmpty(radial)) resetTips(radial, tips)
   radial.morph = approach(radial.morph, wave ? 1 : 0, dt / MORPH_S)
   if (!radial.morph) return
   radial.spin += reducedMotion ? 0 : dt * SPIN_PER_S
@@ -33,9 +38,9 @@ export const stepRadial = (radial, { levels, dt, volume, wave, reducedMotion, t 
     const target = bandLevel(levels, angle - radial.spin) * breath * (1 + wobble(angle, t, reducedMotion))
     radial.speeds[i] += (SPRING * (target - radial.radii[i]) - DAMPING * radial.speeds[i]) * dt
     radial.radii[i] = Math.max(0, radial.radii[i] + radial.speeds[i] * dt)
-    stepPeak(radial, i, dt)
+    stepPeak(radial, i, dt * (playing ? 1 : STOPPED_FALL_SCALE))
   }
-  if (!reducedMotion && radial.morph === 1) emit(radial, { dt, volume })
+  if (playing && !reducedMotion && radial.morph === 1) emit(radial, { dt, volume })
   radial.particles = radial.particles.filter(particle => stepParticle(particle, dt))
 }
 
@@ -53,7 +58,7 @@ export const drawRadial = ({ g, grid, radial, size, palette, ink }) => {
       if (isReserved(grid, size, col, row)) continue
       const { r, angle } = polar(geometry, col, row)
       const edge = radiusAt(radial, angle) * geometry.reach * bloom
-      if (r > edge + 0.5) continue
+      if (edge < TIP_MIN_CELLS || r > edge + 0.5) continue
       const inner = radiusAt(radial, angle - radial.spin * INNER_SPIN) * geometry.reach * bloom * INNER_SCALE
       g.fillStyle = Math.abs(r - inner) < 0.5 ? palette.low : lit
       fillCell(g, grid, col, row)
@@ -63,8 +68,8 @@ export const drawRadial = ({ g, grid, radial, size, palette, ink }) => {
   drawParticles({ g, grid, radial, geometry, size, palette })
 }
 
-export const drawFlock = ({ g, grid, radial, chips, size, ink }) => {
-  if (radial.morph <= 0 || radial.morph >= 1) return
+export const drawFlock = ({ g, grid, radial, chips, size, ink, playing }) => {
+  if (!playing || radial.morph <= 0 || radial.morph >= 1) return
   const geometry = geometryFor(grid)
   const tips = radial.radii.length
   g.fillStyle = ink
@@ -78,8 +83,11 @@ export const drawFlock = ({ g, grid, radial, chips, size, ink }) => {
   }
 }
 
+const isRadialEmpty = radial => radial.particles.length === 0 && radial.peaks.every(peak => peak < EMPTY_PEAK)
+
 const resetTips = (radial, tips) => {
   Object.assign(radial, {
+    morph: 0,
     radii: Array(tips).fill(0), speeds: Array(tips).fill(0), peaks: Array(tips).fill(0), holds: Array(tips).fill(0),
     delays: Array.from({ length: tips }, (_, i) => (1 - FLIGHT_SHARE) * (0.6 * Math.abs(i / Math.max(1, tips - 1) - 0.5) * 2 + 0.4 * Math.random())),
   })
@@ -110,7 +118,8 @@ const stepParticle = (particle, dt) => {
 
 const drawTips = ({ g, grid, radial, geometry, size, ink }) => {
   g.fillStyle = ink
-  radial.peaks.forEach((_, i) => {
+  radial.peaks.forEach((peak, i) => {
+    if (peak * geometry.reach < TIP_MIN_CELLS) return
     const { col, row } = radialTip({ radial, geometry, i, tips: radial.peaks.length })
     if (col < 0 || col >= grid.cols || row < 0 || row >= grid.synthRows || isReserved(grid, size, col, row)) return
     fillCell(g, grid, col, row)
