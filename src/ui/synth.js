@@ -1,7 +1,7 @@
 import { COLOUR_ROW_SHADES, LAST, LIGHT_INK, colourAt, inkRgb, isDarkInk, paletteFor, rgba, shadeRgb } from './colours.js'
 import { COLOUR_ROWS, fillCell, fillScreenCell, inTimer } from './grid.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
-import { applyDither, createDither, isDitherSettled, paintBackground, stepDither } from './dither.js'
+import { VISUALISERS } from './visualisers.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
 import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
@@ -14,10 +14,9 @@ const SELECTOR_FILL = rgba(LIGHT_INK, 1)
 const FRAME_FILL = '#050505'
 const FRAME_CELL = 'rgba(255,255,255,.04)'
 
-export const createSynth = ({ spec, fx }) => {
+export const createSynth = ({ spec, fx, visualiser = 'rings' }) => {
   const view = {
-    spec, fx,
-    dither: createDither(),
+    spec, fx, visualiser,
     g: spec.getContext('2d'),
     fg: fx.getContext('2d'),
     grid: null,
@@ -59,17 +58,17 @@ const draw = (view, frame) => {
   const tintSettled = stepTint(view, frame)
   const palette = paletteFor(frame)
   const size = timerSize(frame.timer)
-  const dithering = stepDither(view.dither, frame)
+  const visualising = frame.wave && frame.playing
   view.g.clearRect(0, 0, view.spec.width, view.spec.height)
-  if (dithering) paintBackground({ g: view.g, grid, pos: frame.pos, playing: frame.playing })
-  drawBars({ view, palette, size, playing: frame.playing })
-  drawChips(view, size)
+  if (visualising) drawVisualiser({ view, palette, size, now: frame.now })
+  else drawBars({ view, palette, size, playing: frame.playing })
+  if (!visualising) drawChips(view, size)
   drawColourRows(view, frame.pos)
   drawTimer({ view, frame, palette, size })
-  const pixelCount = drawPixels({ view, frame, palette, size })
-  if (dithering) ditherScreen(view, frame)
+  const pixelCount = visualising ? 0 : drawPixels({ view, frame, palette, size })
+  if (visualising) hidePixels(view)
   drawFrame(view)
-  return !isDitherSettled(view.dither, frame.wave) || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
+  return frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
 }
 
 const updateLevels = (view, { analyser, playing, sampleRate, volume }) => {
@@ -143,10 +142,22 @@ const drawTimer = ({ view, frame, palette, size }) => {
   }
 }
 
-const ditherScreen = (view, frame) => {
-  const { g, spec, fx, fg, grid, dither } = view
-  applyDither({ dither, g, spec, fx, grid, now: frame.now, reducedMotion: frame.reducedMotion })
-  fg.clearRect(0, 0, fx.width, fx.height)
+const hidePixels = view => {
+  clearPixels(view.pixels)
+  view.fg.clearRect(0, 0, view.fx.width, view.fx.height)
+}
+
+const drawVisualiser = ({ view, palette, size, now }) => {
+  const { g, grid, spectrum } = view
+  const lit = gradientFor(view, palette)
+  const shape = VISUALISERS[view.visualiser]
+  for (let row = 0; row < grid.synthRows; row++) {
+    for (let col = 0; col < grid.cols; col++) {
+      if (inTimer(grid, size, col, row)) continue
+      g.fillStyle = shape({ grid, levels: spectrum.levels, col, row, t: now / 1000 }) ? lit : palette.ghost
+      fillCell(g, grid, col, row)
+    }
+  }
 }
 
 const drawFrame = ({ g, grid }) => {

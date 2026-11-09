@@ -16,7 +16,7 @@ const start = () => {
   const engine = createEngine()
   const app = createApp({ engine, settings: loadSettings(), persist: saveSettings })
   const view = createView(document)
-  const synth = createSynth({ spec: $('spec'), fx: $('fx') })
+  const synth = createSynth({ spec: $('spec'), fx: $('fx'), visualiser: new URLSearchParams(location.search).get('viz') ?? 'rings' })
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
   const layout = { grid: null }
   const frame = { dt: 0, now: 0, playing: false, pos: 0, volume: 0, timer: null, wave: false, analyser: null, sampleRate: 48000, reducedMotion: false }
