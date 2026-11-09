@@ -1,0 +1,90 @@
+import { COLOURS, LAST } from './colours.js'
+import { columnCentreX, posAtX, synthHeight, zoneAt } from './grid.js'
+import { bindGestures, createTapTracker, registerTap, resetTaps } from './gestures.js'
+
+const ARROWS = {
+  ArrowLeft: app => app.nudgePos(-1),
+  ArrowRight: app => app.nudgePos(1),
+  ArrowUp: app => app.nudgeVolume(1),
+  ArrowDown: app => app.nudgeVolume(-1),
+}
+
+export const bindControls = ({ app, doc, layout }) => {
+  const surface = doc.getElementById('surface')
+  const controls = { app, doc, layout, surface, taps: createTapTracker(), dragVolume: 0 }
+  const unbinders = [
+    bindSurface(controls),
+    listen(doc.getElementById('play'), 'click', () => app.togglePlay()),
+    listen(doc.getElementById('timer'), 'click', () => app.cycleTimer()),
+    listen(doc.getElementById('slope'), 'input', e => app.setPos(Number(e.target.value))),
+    listen(doc.getElementById('volume'), 'input', e => app.setVolume(Number(e.target.value))),
+    listen(doc, 'keydown', e => onKey(app, e)),
+  ]
+  return () => unbinders.forEach(unbind => unbind())
+}
+
+const bindSurface = controls => bindGestures({
+  surface: controls.surface,
+  zoneAt: y => zoneAt(controls.layout.grid, y),
+  onPress: press => onPress(controls, press),
+  onDrag: drag => onDrag(controls, drag),
+  onRelease: press => onRelease(controls, press),
+  onTap: tap => onTap(controls, tap),
+  onHover: zone => {
+    controls.surface.dataset.zone = zone
+  },
+})
+
+const onPress = (controls, { zone, x }) => {
+  controls.dragVolume = controls.app.state.volume
+  if (zone === 'colour') beginColourDrag(controls, x)
+}
+
+const onDrag = ({ app, layout, dragVolume }, { zone, x, dy }) => {
+  if (zone === 'colour') return app.setPos(posAtX({ grid: layout.grid, x, last: LAST }))
+  app.setVolume(dragVolume - dy / synthHeight(layout.grid))
+}
+
+const onRelease = (controls, { zone }) => {
+  if (zone === 'colour') endColourDrag(controls)
+}
+
+const onTap = ({ app, taps }, tap) => {
+  if (!app.state.playing) {
+    resetTaps(taps)
+    return app.setPlaying(true)
+  }
+  if (registerTap(taps, tap) === 'double') app.setPlaying(false)
+}
+
+const beginColourDrag = ({ app, doc, layout, surface }, x) => {
+  surface.dataset.drag = 'colour'
+  doc.documentElement.style.setProperty('--blend', '0s')
+  app.setPos(posAtX({ grid: layout.grid, x: columnCentreX(layout.grid, x), last: LAST }))
+  if (!app.state.playing) app.setPlaying(true)
+}
+
+const endColourDrag = ({ doc, surface }) => {
+  delete surface.dataset.drag
+  doc.documentElement.style.removeProperty('--blend')
+}
+
+const onKey = (app, e) => {
+  if (e.target.closest?.('input') || e.metaKey || e.ctrlKey || e.altKey) return
+  const digit = Number(e.key)
+  if (digit >= 1 && digit <= COLOURS.length) return app.selectColour(digit - 1)
+  if (e.key === ' ' && !e.target.closest?.('button')) {
+    e.preventDefault()
+    return app.togglePlay()
+  }
+  if (e.key === 't' || e.key === 'T') return app.cycleTimer()
+  const arrow = ARROWS[e.key]
+  if (!arrow) return
+  e.preventDefault()
+  arrow(app)
+}
+
+const listen = (target, type, listener) => {
+  target.addEventListener(type, listener)
+  return () => target.removeEventListener(type, listener)
+}
