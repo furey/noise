@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Brown, pink, white, blue, and violet noise for focus.</strong><br/>
-  A free app for Mac, Windows, Linux, and the web, drawn as an 8-bit block synth.
+  A free app for Mac, Windows, Linux, and the web.
 </p>
 
 <p align="center">
@@ -22,10 +22,7 @@
   <a href="#download"><strong>Download for your computer →</strong></a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/furey/noise/releases/download/docs-media/demo-devices.mp4"><img src="https://github.com/furey/noise/releases/download/docs-media/demo-devices.png" alt="Noise on a desktop, a tablet, and a phone. Click to play the demo video." width="800"/></a>
-  <br/><em>Click the picture to play the demo video (with sound).</em>
-</p>
+<https://github.com/user-attachments/assets/aad2b86a-6957-48a3-86b0-5b03b8639fdb>
 
 ## Contents
 
@@ -36,15 +33,13 @@
 - [Using the app](#using-the-app)
 - [Privacy](#privacy)
 - [Development](#development)
-- [Licence](#licence)
+- [Disclaimer](#disclaimer)
 - [Contributing](#contributing)
 - [Support](#support)
 
 ## Overview
 
-<img src="https://github.com/furey/noise/releases/download/docs-media/app-icon.png" alt="The Noise app icon: a grid of 8-bit blocks in the five noise colours" width="96"/>
-
-Noise plays a steady noise to help you focus. A tap starts the sound. The screen is a grid of blocks that moves with the sound, like the display of an old hardware synth.
+**Noise** plays steady noise to help you focus. A tap starts the sound. The screen is a grid of blocks that moves with the sound, like the display of an old hardware synth.
 
 There are five colours of noise. Each colour is a slope: the change in loudness from one octave to the next. A lower colour has more bass; a higher colour has more treble.
 
@@ -60,7 +55,7 @@ Between two colours, the sound is a blend of both. Noise has no accounts, no tra
 
 ## Download
 
-Choose your computer below. Each link gets the newest version.
+Choose your computer below. Each link downloads the newest version.
 
 | Computer                                  | Download                                                                                                       |
 | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -190,23 +185,17 @@ The screen has two parts: the synth, which fills most of the screen, and the col
 - **Colour**: tap or drag along the colour strip. A white block, three cells wide and three cells high, marks the colour you hear.
 - **Volume**: drag up or down on the synth, from `10%` to `100%`. At a louder volume, the bars are taller and more particles fly off them.
 
-<p align="center">
-  <a href="https://github.com/furey/noise/releases/download/docs-media/demo-desktop.mp4"><img src="https://github.com/furey/noise/releases/download/docs-media/demo-desktop.png" alt="Noise in a desktop window. Click to play the demo video." width="720"/></a>
-  <br/><em>The desktop app (click to play)</em>
-</p>
+The desktop app:
 
-<table align="center">
-  <tr>
-    <td align="center" valign="bottom">
-      <a href="https://github.com/furey/noise/releases/download/docs-media/demo-ipad.mp4"><img src="https://github.com/furey/noise/releases/download/docs-media/demo-ipad.png" alt="Noise on an iPad. Click to play the demo video." width="400"/></a>
-      <br/><em>On a tablet (click to play)</em>
-    </td>
-    <td align="center" valign="bottom">
-      <a href="https://github.com/furey/noise/releases/download/docs-media/demo-iphone.mp4"><img src="https://github.com/furey/noise/releases/download/docs-media/demo-iphone.png" alt="Noise on an iPhone. Click to play the demo video." width="260"/></a>
-      <br/><em>On a phone (click to play)</em>
-    </td>
-  </tr>
-</table>
+<https://github.com/user-attachments/assets/6da66be0-5d79-4fa2-b475-d1005a9d1196>
+
+On a tablet:
+
+<https://github.com/user-attachments/assets/0349a8e5-6180-4834-91a0-310a7c5efbcc>
+
+On a phone:
+
+<https://github.com/user-attachments/assets/3e603247-cc4d-4a46-a484-77ed1c3a5fe6>
 
 ### Sleep timer
 
@@ -228,7 +217,7 @@ Screen readers get a **Play** button, a **Noise colour** slider, a **Volume** sl
 
 ### Desktop window
 
-The window opens at `960` × `600` and you can make it as small as `280` × `220`, small enough to sit in a corner of the screen. The grid of blocks fits itself to each size. The app remembers the size and position of the window.
+The window opens at `960` × `600` and you can make it as small as `280` × `220`, small enough for a corner of the screen. The grid of blocks changes to fit each size. The app remembers the size and position of the window.
 
 ### Background play
 
@@ -315,7 +304,7 @@ Then, in a second terminal:
 | `node scripts/capture-social.mjs`  | `social.png`, the preview picture for links to the repository                      |
 | `node scripts/render-icon-gif.mjs` | `app-icon.gif` and `app-icon.png`                                                  |
 
-Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the videos. The sound in each video is not a recording: the script runs the noise worklet in Node.js and follows the same taps and drags as the video.
+Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the videos. The videos in this README are GitHub attachments. To replace one, drag the new `.mp4` into a GitHub comment box, then put the new URL in this README. The sound in each video is not a recording: the script runs the noise worklet in Node.js and follows the same taps and drags as the video.
 
 ### Build workflow
 
@@ -323,9 +312,13 @@ Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the vide
 
 For a pushed version tag (e.g. `1.0.0`), a second job waits up to 30 minutes for the GitHub release of that tag. It then attaches the six files in [Download](#download) to the release, and no others. Only that job can write to the repository.
 
-## Licence
+## Disclaimer
 
-Noise is licensed under the [GNU GPLv3 License](./LICENSE.txt) (`GPL-3.0-or-later`). It is provided as-is with no warranty.
+This project:
+
+- Is licensed under the [GNU GPLv3 License](./LICENSE.txt) (`GPL-3.0-or-later`).
+- Is written with the assistance of AI and may contain errors.
+- Is provided as-is with no warranty. Use it at your own risk.
 
 ## Contributing
 
