@@ -27,6 +27,8 @@ export const createEngine = () => {
     fadeOut: seconds => fadeOut(engine, seconds),
     setPosition: (position, glide) => setPosition(engine, position, glide),
     setVolume: (volume, glide) => setVolume(engine, volume, glide),
+    planPosition: (values, timing) => planPosition(engine, values, timing),
+    planVolume: (values, timing) => planVolume(engine, values, timing),
     analyser: () => engine.analyser,
     sampleRate: () => engine.ctx?.sampleRate ?? 48000,
   }
@@ -107,7 +109,27 @@ const fadeOut = (engine, seconds) => {
 const setPosition = (engine, position, glide = POSITION_RAMP_S) => {
   engine.position = position
   if (!engine.noise) return
-  engine.noise.parameters.get('position').setTargetAtTime(position, engine.ctx.currentTime, glide)
+  const param = engine.noise.parameters.get('position')
+  param.cancelScheduledValues(engine.ctx.currentTime)
+  param.setTargetAtTime(position, engine.ctx.currentTime, glide)
+}
+
+const planPosition = (engine, values, timing) => {
+  engine.position = values[0]
+  if (engine.noise) plan({ param: engine.noise.parameters.get('position'), ctx: engine.ctx, values, ...timing })
+}
+
+const planVolume = (engine, values, timing) => {
+  engine.volume = values[0]
+  if (engine.wanted && engine.master && engine.ctx.state === 'running') {
+    plan({ param: engine.master.gain, ctx: engine.ctx, values, ...timing })
+  }
+}
+
+const plan = ({ param, ctx, values, step, glide }) => {
+  const now = ctx.currentTime
+  param.cancelScheduledValues(now)
+  values.forEach((value, index) => param.setTargetAtTime(value, now + index * step, glide))
 }
 
 const setVolume = (engine, volume, glide = VOLUME_RAMP_S) => {

@@ -256,6 +256,8 @@ To keep the window above other windows, choose **View → Always on Top**. On Wi
 
 The sound keeps playing in the background where the browser allows it. The app also gives play and pause actions to the media controls of your device. The desktop app keeps playing when you minimise it.
 
+In wave mode, the app gives the browser the next `2` seconds of the wave ahead of time. A background tab runs timers only once a second, so the sound still rises and falls smoothly there.
+
 ## Privacy
 
 - **No network**: after the page loads, Noise makes no network requests. The desktop app blocks all network requests.

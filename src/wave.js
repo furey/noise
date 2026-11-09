@@ -1,5 +1,8 @@
 export const WAVE_TICK_MS = 50
 export const WAVE_GLIDE_S = 0.25
+export const WAVE_PLAN_STEP_S = 0.1
+export const WAVE_PLAN_S = 2
+export const WAVE_REPLAN_S = 1.2
 
 const SHORE = 0
 const QUICK_RETURN_S = 0.3

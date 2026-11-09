@@ -1,7 +1,9 @@
 import { LAST, clampPos } from './ui/colours.js'
 import { clampVolume } from './settings.js'
 import { createTimer, cycleTimer, isTimerOn, tickTimer, unfade } from './ui/timer.js'
-import { WAVE_GLIDE_S, WAVE_TICK_MS, createWave, forget, waveAt } from './wave.js'
+import {
+  WAVE_GLIDE_S, WAVE_PLAN_S, WAVE_PLAN_STEP_S, WAVE_REPLAN_S, WAVE_TICK_MS, createWave, forget, waveAt,
+} from './wave.js'
 
 const POS_STEP = 0.25
 const VOLUME_STEP = 0.05
@@ -13,7 +15,7 @@ export const createApp = ({ engine, settings, persist }) => {
     state: { playing: false, pos: settings.pos, volume: settings.volume, timer: createTimer(), wave: false },
     listeners: new Set(),
     clock: { id: 0, last: 0 },
-    tide: { id: 0, wave: null, seconds: 0, last: 0 },
+    tide: { id: 0, wave: null, seconds: 0, last: 0, plan: null },
   }
   engine.setPosition(app.state.pos)
   engine.setVolume(app.state.volume)
@@ -157,6 +159,7 @@ const restartTide = (app, { quick = false } = {}) => {
 const stopWave = app => {
   stopTide(app)
   app.state.wave = false
+  app.engine.setPosition(app.state.pos)
   if (!app.state.timer.fading) app.engine.setVolume(app.state.volume)
   save(app)
   notify(app)
@@ -168,18 +171,36 @@ const stopTide = app => {
 }
 
 const flowTide = app => {
-  const { state, tide, engine } = app
+  const { state, tide } = app
   const now = performance.now()
   const elapsed = (now - tide.last) / 1000
   tide.last = now
-  if (!state.playing) return
+  if (!state.playing) {
+    tide.plan = null
+    return
+  }
   tide.seconds += elapsed
-  const { pos, volume } = waveAt(tide.wave, tide.seconds)
+  state.pos = clampPos(waveAt(tide.wave, tide.seconds).pos)
   forget(tide.wave, tide.seconds)
-  state.pos = clampPos(pos)
-  engine.setPosition(state.pos, WAVE_GLIDE_S)
-  if (!state.timer.fading) engine.setVolume(clampVolume(state.volume * volume), WAVE_GLIDE_S)
+  if (isPlanStale(app)) planTide(app)
   notify(app)
+}
+
+const isPlanStale = ({ state, tide: { plan, wave, seconds } }) =>
+  !plan
+  || plan.wave !== wave
+  || plan.volume !== state.volume
+  || plan.fading !== state.timer.fading
+  || plan.until - seconds < WAVE_REPLAN_S
+
+const planTide = app => {
+  const { state, tide, engine } = app
+  const count = Math.round(WAVE_PLAN_S / WAVE_PLAN_STEP_S) + 1
+  const points = Array.from({ length: count }, (_, index) => waveAt(tide.wave, tide.seconds + index * WAVE_PLAN_STEP_S))
+  const timing = { step: WAVE_PLAN_STEP_S, glide: WAVE_GLIDE_S }
+  engine.planPosition(points.map(({ pos }) => clampPos(pos)), timing)
+  if (!state.timer.fading) engine.planVolume(points.map(({ volume }) => clampVolume(state.volume * volume)), timing)
+  tide.plan = { wave: tide.wave, volume: state.volume, fading: state.timer.fading, until: tide.seconds + WAVE_PLAN_S }
 }
 
 const save = app => app.persist({ pos: app.state.pos, volume: app.state.volume })

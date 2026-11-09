@@ -18,6 +18,8 @@ const fakeEngine = () => {
     fadeOut: () => engine.calls.push('fade'),
     setPosition: () => {},
     setVolume: () => {},
+    planPosition: (values, timing) => engine.calls.push({ planPosition: values, timing }),
+    planVolume: (values, timing) => engine.calls.push({ planVolume: values, timing }),
   }
   return engine
 }
@@ -108,4 +110,23 @@ test('a colour change during wave mode keeps wave mode on', () => {
   app.toggleWave()
   assert.equal(app.state.wave, false)
   app.dispose()
+})
+
+test('wave mode schedules the sound two seconds ahead and replans only when the plan runs short', () => {
+  mock.timers.enable({ apis: ['setInterval'] })
+  const { app, engine } = start()
+  app.toggleWave()
+  mock.timers.tick(50)
+  const plans = () => engine.calls.filter(call => call.planPosition)
+  assert.equal(plans().length, 1)
+  assert.equal(plans()[0].planPosition.length, 21)
+  assert.deepEqual(plans()[0].timing, { step: 0.1, glide: 0.25 })
+  assert.equal(engine.calls.filter(call => call.planVolume).length, 1)
+  mock.timers.tick(200)
+  assert.equal(plans().length, 1)
+  app.setVolume(0.3)
+  mock.timers.tick(50)
+  assert.equal(plans().length, 2)
+  app.dispose()
+  mock.timers.reset()
 })
