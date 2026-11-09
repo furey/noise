@@ -35,6 +35,8 @@ const start = () => {
   addEventListener('resize', scheduleRelayout)
   watchPixelRatio(scheduleRelayout)
   addEventListener('pagehide', () => app.halt())
+  addEventListener('pageshow', e => e.persisted && prepareAudio(engine))
+  requestAnimationFrame(() => setTimeout(() => prepareAudio(engine)))
   bindControls({ app, doc: document, layout })
   app.subscribe(state => {
     view.render(state)
@@ -43,6 +45,8 @@ const start = () => {
   })
   registerServiceWorker()
 }
+
+const prepareAudio = engine => engine.prepare().catch(() => {})
 
 const fillFrame = ({ frame, dt, now, state, engine, reducedMotion }) => {
   frame.dt = dt

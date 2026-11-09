@@ -19,6 +19,7 @@ export const createEngine = () => {
     onInterrupt: listener => {
       engine.onInterrupt = listener
     },
+    prepare: () => prepare(engine),
     play: () => play(engine),
     pause: () => pause(engine),
     halt: () => halt(engine),
@@ -30,14 +31,18 @@ export const createEngine = () => {
   }
 }
 
-const play = async engine => {
-  engine.wanted = true
-  clearTimeout(engine.suspendTimer)
+const prepare = engine => {
   engine.booting ??= boot(engine).catch(error => {
     discard(engine)
     throw error
   })
-  await engine.booting
+  return engine.booting
+}
+
+const play = async engine => {
+  engine.wanted = true
+  clearTimeout(engine.suspendTimer)
+  await prepare(engine)
   if (!engine.wanted) return scheduleSuspend(engine)
   await engine.ctx.resume()
   await startElement(engine)
@@ -106,7 +111,7 @@ const setVolume = (engine, volume) => {
 const boot = async engine => {
   const AudioContext = audioContextClass()
   setPlaybackSession()
-  const ctx = new AudioContext()
+  const ctx = createContext(AudioContext)
   engine.ctx = ctx
   ctx.addEventListener('statechange', () => interrupt(engine, ctx))
   await ctx.audioWorklet.addModule(workletUrl)
@@ -136,6 +141,17 @@ const createLimiter = ctx => {
   return limiter
 }
 
+const createContext = AudioContext => {
+  if (!window.MediaStreamAudioDestinationNode) return new AudioContext()
+  try {
+    return new AudioContext({ sinkId: { type: 'none' } })
+  } catch {
+    return new AudioContext()
+  }
+}
+
+const isSilentSink = ctx => ctx.sinkId?.type === 'none'
+
 const routeOutput = (engine, source) => {
   if (!window.MediaStreamAudioDestinationNode) return source.connect(engine.ctx.destination)
   const stream = engine.ctx.createMediaStreamDestination()
@@ -154,6 +170,7 @@ const startElement = async engine => {
   } catch {
     if (!engine.ctx) return
     engine.fallbackSource.connect(engine.ctx.destination)
+    if (isSilentSink(engine.ctx)) await engine.ctx.setSinkId('')
     engine.element = null
   }
 }
