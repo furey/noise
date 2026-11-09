@@ -24,8 +24,8 @@ export const createEngine = () => {
     pause: () => pause(engine),
     halt: () => halt(engine),
     fadeOut: seconds => fadeOut(engine, seconds),
-    setPosition: position => setPosition(engine, position),
-    setVolume: volume => setVolume(engine, volume),
+    setPosition: (position, glide) => setPosition(engine, position, glide),
+    setVolume: (volume, glide) => setVolume(engine, volume, glide),
     analyser: () => engine.analyser,
     sampleRate: () => engine.ctx?.sampleRate ?? 48000,
   }
@@ -97,15 +97,15 @@ const fadeOut = (engine, seconds) => {
   rampTo(engine, 0, Math.max(0.05, seconds / 4))
 }
 
-const setPosition = (engine, position) => {
+const setPosition = (engine, position, glide = POSITION_RAMP_S) => {
   engine.position = position
   if (!engine.noise) return
-  engine.noise.parameters.get('position').setTargetAtTime(position, engine.ctx.currentTime, POSITION_RAMP_S)
+  engine.noise.parameters.get('position').setTargetAtTime(position, engine.ctx.currentTime, glide)
 }
 
-const setVolume = (engine, volume) => {
+const setVolume = (engine, volume, glide = VOLUME_RAMP_S) => {
   engine.volume = volume
-  if (engine.wanted && engine.master && engine.ctx.state === 'running') rampTo(engine, volume, VOLUME_RAMP_S)
+  if (engine.wanted && engine.master && engine.ctx.state === 'running') rampTo(engine, volume, glide)
 }
 
 const boot = async engine => {

@@ -138,6 +138,14 @@ const SHOTS = {
       script: fullScript({ glide: 0.35, drag: 3.5, from: 1, to: 4 }),
     })],
   },
+  wave: {
+    width: 1600, height: 1000, poster: 20,
+    devices: [desktopDevice({
+      viewport: { width: 1440, height: 856 }, dpr: 1, x: 80, y: 52, bar: 40, pointer: { ...MOUSE, dot: 0, ring: 0 },
+      settings: { pos: 0, volume: 0.6 },
+      script: [['wait', 0.5], ['type', 'wave'], ['wait', 75]],
+    })],
+  },
   devices: {
     width: 1920, height: 1080, poster: 5.2,
     devices: [
@@ -265,6 +273,7 @@ const buildTimeline = ({ device, spots }) => {
       for (let i = 0; i < 2; i++) push()
     },
     drag: (target, seconds) => move(spot(spots, target), seconds, 'move'),
+    type: text => push([`type:${text}`]),
     release: () => {
       push(['up'])
       state.down = false
@@ -298,6 +307,7 @@ const playFrame = async ({ session, cue, dir, frame }) => {
     if (op === 'move') await page.mouse.move(cue.at[0], cue.at[1])
     if (op === 'down') await page.mouse.down()
     if (op === 'up') await page.mouse.up()
+    if (op.startsWith?.('type:')) await page.keyboard.type(op.slice(5))
   }
   await stepApp(page, { dt: 1000 / FPS, pointer: cue.look })
   if (frame === 0) await ensureDir(dir)

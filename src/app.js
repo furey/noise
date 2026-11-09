@@ -1,6 +1,7 @@
 import { LAST, clampPos } from './ui/colours.js'
 import { clampVolume } from './settings.js'
 import { createTimer, cycleTimer, isTimerOn, tickTimer, unfade } from './ui/timer.js'
+import { WAVE_GLIDE_S, WAVE_TICK_MS, createWave, forget, waveAt } from './wave.js'
 
 const POS_STEP = 0.25
 const VOLUME_STEP = 0.05
@@ -9,9 +10,10 @@ const CLOCK_MS = 1000
 export const createApp = ({ engine, settings, persist }) => {
   const app = {
     engine, persist,
-    state: { playing: false, pos: settings.pos, volume: settings.volume, timer: createTimer() },
+    state: { playing: false, pos: settings.pos, volume: settings.volume, timer: createTimer(), wave: false },
     listeners: new Set(),
     clock: { id: 0, last: 0 },
+    tide: { id: 0, wave: null, seconds: 0, last: 0 },
   }
   engine.setPosition(app.state.pos)
   engine.setVolume(app.state.volume)
@@ -22,13 +24,17 @@ export const createApp = ({ engine, settings, persist }) => {
     togglePlay: () => setPlaying(app, !app.state.playing),
     setPlaying: on => setPlaying(app, on),
     halt: () => halt(app),
-    setPos: pos => setPos(app, pos),
-    nudgePos: steps => setPos(app, app.state.pos + steps * POS_STEP),
+    setPos: pos => choosePos(app, pos),
+    nudgePos: steps => choosePos(app, app.state.pos + steps * POS_STEP),
+    toggleWave: () => app.state.wave ? stopWave(app) : startWave(app),
     setVolume: volume => setVolume(app, volume),
     nudgeVolume: steps => setVolume(app, app.state.volume + steps * VOLUME_STEP),
     selectColour: index => selectColour(app, index),
     cycleTimer: () => advanceTimer(app),
-    dispose: () => stopClock(app),
+    dispose: () => {
+      stopClock(app)
+      stopTide(app)
+    },
   }
 }
 
@@ -50,6 +56,7 @@ const setPlaying = (app, on) => {
 }
 
 const halt = app => {
+  stopTide(app)
   app.state.playing = false
   app.state.timer = unfade(app.state.timer)
   syncClock(app)
@@ -68,6 +75,11 @@ const stopAfterInterruption = app => {
   if (app.state.playing) setPlaying(app, false)
 }
 
+const choosePos = (app, pos) => {
+  if (app.state.wave) stopWave(app)
+  setPos(app, pos)
+}
+
 const setPos = (app, pos) => {
   app.state.pos = clampPos(pos)
   app.engine.setPosition(app.state.pos)
@@ -77,13 +89,13 @@ const setPos = (app, pos) => {
 
 const setVolume = (app, volume) => {
   app.state.volume = clampVolume(volume)
-  if (!app.state.timer.fading) app.engine.setVolume(app.state.volume)
+  if (!app.state.timer.fading && !app.state.wave) app.engine.setVolume(app.state.volume)
   save(app)
   notify(app)
 }
 
 const selectColour = (app, index) => {
-  setPos(app, Math.min(index, LAST))
+  choosePos(app, Math.min(index, LAST))
   if (!app.state.playing) setPlaying(app, true)
 }
 
@@ -116,6 +128,43 @@ const syncClock = app => {
 const stopClock = app => {
   clearInterval(app.clock.id)
   app.clock.id = 0
+}
+
+const startWave = app => {
+  const { state, tide } = app
+  state.wave = true
+  Object.assign(tide, { wave: createWave({ from: state.pos }), seconds: 0, last: performance.now() })
+  tide.id = setInterval(() => flowTide(app), WAVE_TICK_MS)
+  if (!state.playing) setPlaying(app, true)
+  notify(app)
+}
+
+const stopWave = app => {
+  stopTide(app)
+  app.state.wave = false
+  if (!app.state.timer.fading) app.engine.setVolume(app.state.volume)
+  save(app)
+  notify(app)
+}
+
+const stopTide = app => {
+  clearInterval(app.tide.id)
+  app.tide.id = 0
+}
+
+const flowTide = app => {
+  const { state, tide, engine } = app
+  const now = performance.now()
+  const elapsed = (now - tide.last) / 1000
+  tide.last = now
+  if (!state.playing) return
+  tide.seconds += elapsed
+  const { pos, volume } = waveAt(tide.wave, tide.seconds)
+  forget(tide.wave, tide.seconds)
+  state.pos = clampPos(pos)
+  engine.setPosition(state.pos, WAVE_GLIDE_S)
+  if (!state.timer.fading) engine.setVolume(clampVolume(state.volume * volume), WAVE_GLIDE_S)
+  notify(app)
 }
 
 const save = app => app.persist({ pos: app.state.pos, volume: app.state.volume })

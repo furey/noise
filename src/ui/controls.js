@@ -2,6 +2,9 @@ import { COLOURS, LAST } from './colours.js'
 import { columnCentreX, posAtX, synthHeight, zoneAt } from './grid.js'
 import { bindGestures } from './gestures.js'
 
+const WAVE_WORD = 'wave'
+const WAVE_WORD_MS = 2000
+
 const ARROWS = {
   ArrowLeft: app => app.nudgePos(-1),
   ArrowRight: app => app.nudgePos(1),
@@ -11,14 +14,14 @@ const ARROWS = {
 
 export const bindControls = ({ app, doc, layout }) => {
   const surface = doc.getElementById('surface')
-  const controls = { app, doc, layout, surface, dragVolume: 0, playingAtPress: false }
+  const controls = { app, doc, layout, surface, dragVolume: 0, playingAtPress: false, typed: { text: '', t: 0 } }
   const unbinders = [
     bindSurface(controls),
     listen(doc.getElementById('play'), 'click', () => app.togglePlay()),
     listen(doc.getElementById('timer'), 'click', () => app.cycleTimer()),
     listen(doc.getElementById('slope'), 'input', e => app.setPos(Number(e.target.value))),
     listen(doc.getElementById('volume'), 'input', e => app.setVolume(Number(e.target.value))),
-    listen(doc, 'keydown', e => onKey(app, e)),
+    listen(doc, 'keydown', e => onKey(controls, e)),
   ]
   return () => unbinders.forEach(unbind => unbind())
 }
@@ -30,6 +33,7 @@ const bindSurface = controls => bindGestures({
   onDrag: drag => onDrag(controls, drag),
   onRelease: press => onRelease(controls, press),
   onTap: tap => onTap(controls, tap),
+  onChord: () => controls.app.toggleWave(),
   onHover: zone => {
     controls.surface.dataset.zone = zone
   },
@@ -70,8 +74,9 @@ const endColourDrag = ({ doc, surface }) => {
   doc.documentElement.style.removeProperty('--blend')
 }
 
-const onKey = (app, e) => {
+const onKey = ({ app, typed }, e) => {
   if (e.target.closest?.('input') || e.metaKey || e.ctrlKey || e.altKey) return
+  if (spellsWave(typed, e)) return app.toggleWave()
   const digit = Number(e.key)
   if (digit >= 1 && digit <= COLOURS.length) return app.selectColour(digit - 1)
   if (e.key === ' ' && !e.target.closest?.('button')) {
@@ -83,6 +88,15 @@ const onKey = (app, e) => {
   if (!arrow) return
   e.preventDefault()
   arrow(app)
+}
+
+const spellsWave = (typed, e) => {
+  const fresh = e.timeStamp - typed.t < WAVE_WORD_MS ? typed.text : ''
+  typed.text = `${fresh}${e.key.length === 1 ? e.key.toLowerCase() : ''}`.slice(-WAVE_WORD.length)
+  typed.t = e.timeStamp
+  if (typed.text !== WAVE_WORD) return false
+  typed.text = ''
+  return true
 }
 
 const listen = (target, type, listener) => {
