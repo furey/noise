@@ -17,3 +17,11 @@ test('the colour strip clears the home bar of a rounded screen', () => {
   const thinBar = measureGrid({ width: 390, height: 844, dpr: 3, insets: { top: 20, right: 0, bottom: 1, left: 0 } })
   assert.equal(thinBar.colourTop, thinBar.rows - COLOUR_ROWS - 1)
 })
+
+test('a macOS title bar moves the dots down to the third row and leaves the colour strip in place', () => {
+  const plain = measureGrid({ width: 1024, height: 768, dpr: 2, insets: NO_INSETS })
+  const mac = measureGrid({ width: 1024, height: 768, dpr: 2, insets: NO_INSETS, titlebar: 32 })
+  assert.equal(plain.timerRow, 1)
+  assert.equal(mac.timerRow, 3)
+  assert.equal(mac.colourTop, plain.colourTop)
+})

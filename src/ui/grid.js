@@ -11,7 +11,7 @@ const MIN_ROWS = 8
 
 const ROUNDED_TOP_ROWS = 3
 
-export const measureGrid = ({ width, height, dpr, insets }) => {
+export const measureGrid = ({ width, height, dpr, insets, titlebar = 0 }) => {
   const cols = Math.max(MIN_COLS, Math.round(width / clamp(width / CELLS_ACROSS, CELL_MIN_PX, CELL_MAX_PX)))
   const cellW = width / cols
   const rows = Math.max(MIN_ROWS, Math.round(height / cellW))
@@ -24,7 +24,7 @@ export const measureGrid = ({ width, height, dpr, insets }) => {
     synthRows: colourTop,
     colourTop,
     timerCol: cols - 2 - Math.ceil(insets.right / cellW),
-    timerRow: rounded ? Math.max(ROUNDED_TOP_ROWS, Math.ceil(insets.top / stepY)) : 1,
+    timerRow: rounded || titlebar > 0 ? Math.max(ROUNDED_TOP_ROWS, Math.ceil(Math.max(insets.top, titlebar) / stepY)) : 1,
   }
 }
 

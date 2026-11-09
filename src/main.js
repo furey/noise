@@ -70,7 +70,8 @@ const measureLayout = () => {
   const width = spec.clientWidth || innerWidth
   const height = spec.clientHeight || innerHeight
   const insets = readInsets()
-  return measureGrid({ width, height, dpr: backingDpr(width, height), insets })
+  const titlebar = document.querySelector('.titlebar')?.offsetHeight ?? 0
+  return measureGrid({ width, height, dpr: backingDpr(width, height), insets, titlebar })
 }
 
 const backingDpr = (width, height) =>
