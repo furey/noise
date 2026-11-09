@@ -215,9 +215,9 @@ The timer counts down only while the sound plays. In the last minute, the sound 
 
 ### Wave mode
 
-The dot in the top-left corner turns wave mode on and off. In wave mode, the noise breathes like the sea: it rises from brown to a random colour, holds, then eases back to brown, with a gentle swell in volume. The dot blinks while wave mode is on.
+The dot in the top-left corner turns wave mode on and off. In wave mode, the noise breathes like the sea: it rises from brown to a random colour, holds, then eases back to brown, with a gentle swell in volume. The dot is white while wave mode is on.
 
-The synth changes shape in wave mode. The bars point out from a black centre, each with its own white peak block, and the circle turns slowly. A drag on the colour strip moves the wave to that colour, and the wave carries on from there.
+The synth changes shape in wave mode. The bars point out from the centre of the screen, each with its own white peak block, and the circle turns slowly. A drag on the colour strip moves the wave to that colour, and the wave carries on from there.
 
 ### Keyboard
 

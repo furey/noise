@@ -36,9 +36,10 @@ test('nearest colour rounds the slope position', () => {
   assert.equal(nearestColour(1.5).id, 'white')
 })
 
-test('palette and ink follow play state and the nearest colour', () => {
+test('the palette blends between neighbouring colours while playing', () => {
   assert.equal(paletteFor({ playing: false, pos: 2 }), IDLE_PALETTE)
-  assert.equal(paletteFor({ playing: true, pos: 3.2 }), PALETTES.blue)
+  assert.equal(paletteFor({ playing: true, pos: 3 }), PALETTES.blue)
+  assert.equal(paletteFor({ playing: true, pos: 3.2 }).mid, 'rgba(66,166,255,1)')
   assert.equal(isDarkInk({ playing: true, pos: 2 }), true)
   assert.equal(isDarkInk({ playing: false, pos: 2 }), false)
 })

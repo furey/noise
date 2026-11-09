@@ -24,6 +24,7 @@ export const createView = doc => {
 const render = (view, state) => {
   view.doc.body.classList.toggle('playing', state.playing)
   view.root.dataset.ink = isDarkInk(state) ? 'dark' : 'light'
+  view.root.classList.toggle('wave', state.wave)
   view.layers.forEach((layer, index) => {
     layer.style.opacity = layerOpacity(state.pos, index)
   })

@@ -32,6 +32,8 @@ html, body {
 #fx { pointer-events: none }
 
 .layer { opacity: 0; transition: opacity var(--blend, .6s) ease }
+
+.wave .layer { transition: none }
 .layer[data-id="brown"] { background: var(--brown-g) }
 .layer[data-id="pink"] { background: var(--pink-g) }
 .layer[data-id="white"] { background: var(--white-g) }

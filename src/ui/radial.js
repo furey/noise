@@ -1,14 +1,11 @@
 import { fillCell, isReserved } from './grid.js'
 
-export const RADIAL_MODES = ['burst', 'hole', 'ring', 'spin']
-
 const PEAK_HOLD_S = 0.35
 const PEAK_FALL_PER_S = 0.55
 const PARTICLE_SPEED = 9
 const PARTICLE_LIFE_S = 1.4
 const EMIT_PER_S = 2.2
 const MAX_PARTICLES = 160
-const HOLE_FILL = '#000000'
 const SPIN_PER_S = 0.12
 
 export const createRadial = () => ({ peaks: new Float32Array(0), holds: new Float32Array(0), particles: [], spin: 0 })
@@ -45,7 +42,6 @@ export const drawRadial = ({ g, grid, radial, levels, size, mode, palette, ink }
 
 const cellStyle = ({ r, level, peak, geometry, mode, lit, palette, ink }) => {
   const { hole, reach, ring } = geometry
-  if (r < hole) return HOLE_FILL
   const span = reach - hole
   if (mode === 'hole') {
     const inner = reach - level * span
@@ -102,7 +98,7 @@ const geometryFor = (grid, mode) => {
   const cx = (grid.cols - 1) / 2
   const cy = (grid.synthRows - 1) / 2
   const reach = Math.max(cx, cy * aspect) + 0.5
-  const hole = mode === 'ring' ? 1.5 : 2.5
+  const hole = mode === 'ring' ? 1.5 : 0
   return { cx, cy, aspect, reach, hole, ring: reach * 0.42, mode }
 }
 

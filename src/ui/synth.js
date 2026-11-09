@@ -4,7 +4,7 @@ import { chipSegment, reassignChips, stepChips } from './chips.js'
 import { createRadial, drawRadial, stepRadial } from './radial.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
-import { TIMER_BLINK_LOW, TIMER_BLINK_MS, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
+import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
 
 const INK_TINT_S = 0.4
 const INK_STEPS = 20
@@ -135,18 +135,10 @@ const drawSelector = ({ g, grid, pos }) => {
   }
 }
 
-const WAVE_BLINK_MS = TIMER_BLINK_MS * 1.5
-
 const drawWaveDot = ({ view, frame, palette }) => {
   const { g, grid } = view
-  g.fillStyle = frame.wave || frame.playing ? inkStyle(view, waveAlpha(frame)) : palette.rest
+  g.fillStyle = frame.wave ? inkStyle(view, 1) : frame.playing ? inkStyle(view, TIMER_OFF_ALPHA) : palette.rest
   fillCell(g, grid, waveCol(grid), grid.timerRow)
-}
-
-const waveAlpha = ({ wave, playing, now, reducedMotion }) => {
-  if (!wave) return TIMER_OFF_ALPHA
-  if (!playing || reducedMotion) return 1
-  return Math.floor(now / WAVE_BLINK_MS) % 2 ? TIMER_BLINK_LOW : 1
 }
 
 const drawTimer = ({ view, frame, palette, size }) => {

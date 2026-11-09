@@ -32,7 +32,26 @@ export const clampPos = pos => clamp(pos, 0, LAST)
 
 export const nearestColour = pos => COLOURS[Math.round(clampPos(pos))]
 
-export const paletteFor = ({ playing, pos }) => playing ? PALETTES[nearestColour(pos).id] : IDLE_PALETTE
+export const paletteFor = ({ playing, pos }) => playing ? blendedPalette(pos) : IDLE_PALETTE
+
+const BLEND_STEPS = 20
+const blends = new Map()
+
+const blendedPalette = pos => {
+  const key = Math.round(clampPos(pos) * BLEND_STEPS)
+  if (!blends.has(key)) blends.set(key, blendPalettes(key / BLEND_STEPS))
+  return blends.get(key)
+}
+
+const blendPalettes = pos => {
+  const lo = Math.min(Math.floor(pos), LAST - 1)
+  const t = pos - lo
+  const [from, to] = [PALETTES[COLOURS[lo].id], PALETTES[COLOURS[lo + 1].id]]
+  if (t === 0) return from
+  if (t === 1) return to
+  const mix = tone => rgba(mixRgb(hexRgb(from[tone]), hexRgb(to[tone]), t), 1)
+  return { low: mix('low'), mid: mix('mid'), high: mix('high'), ghost: t < 0.5 ? from.ghost : to.ghost }
+}
 
 export const isDarkInk = ({ playing, pos }) => playing && nearestColour(pos).id === 'white'
 
