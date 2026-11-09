@@ -85,6 +85,15 @@ html, body {
     env(safe-area-inset-left, 0px);
 }
 
+html.desktop.mac .titlebar {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 32px;
+  -webkit-app-region: drag;
+}
+
+html.desktop.mac .hit { -webkit-app-region: no-drag }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition-duration: .01s !important }
 }

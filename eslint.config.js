@@ -24,7 +24,15 @@ export default [
     languageOptions: { globals: { ...globals.serviceworker } },
   },
   {
-    files: ['test/**/*.js', 'scripts/**/*.mjs', '*.config.js'],
+    files: ['electron-builder.config.cjs'],
+    languageOptions: { sourceType: 'commonjs', globals: { ...globals.node } },
+  },
+  {
+    files: ['test/**/*.js', 'test/**/*.mjs', 'scripts/**/*.mjs', 'electron/**/*.mjs', '*.config.js'],
     languageOptions: { globals: { ...globals.node } },
+  },
+  {
+    files: ['test/startup.test.mjs'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ]

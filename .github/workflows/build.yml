@@ -1,0 +1,137 @@
+name: Build
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['[0-9]+.[0-9]+.[0-9]+']
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: windows-latest
+            platform: win
+          - os: ubuntu-latest
+            platform: linux
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install
+        run: npm ci --no-fund --no-audit
+
+      - name: Allow the Electron sandbox on Linux
+        if: runner.os == 'Linux'
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: End-to-end tests
+        if: runner.os != 'Linux'
+        run: npm run test:e2e
+
+      - name: End-to-end tests (Linux, virtual display)
+        if: runner.os == 'Linux'
+        run: xvfb-run --auto-servernum npm run test:e2e
+
+      - name: Build
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        shell: bash
+        run: npm run dist -- "--$PLATFORM"
+
+      - name: Add an inherited orphaned package SID to the per-user Programs folder (electron/electron#51761)
+        if: runner.os == 'Windows'
+        run: |
+          New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\Programs" | Out-Null
+          icacls "$env:LOCALAPPDATA\Programs" /grant "*S-1-15-2-999-999-998:(OI)(CI)(F)"
+
+      - name: Install silently and check the install folder access
+        if: runner.os == 'Windows'
+        run: |
+          Start-Process -Wait -FilePath "release\Noise-Windows.exe" -ArgumentList '/S'
+          $installDir = "$env:LOCALAPPDATA\Programs\noise"
+          icacls $installDir
+          if (-not ((icacls $installDir) -match 'S-1-15-2-1:|ALL APPLICATION PACKAGES')) { throw 'The installer did not grant ALL APPLICATION PACKAGES read access.' }
+          "NOISE_INSTALLED_EXE=$installDir\Noise.exe" >> $env:GITHUB_ENV
+
+      - name: Test that the installed app opens a window
+        if: runner.os == 'Windows'
+        run: |
+          $env:NOISE_E2E_EXECUTABLE = $env:NOISE_INSTALLED_EXE
+          node --test --test-concurrency=1 --test-reporter=spec --test-name-pattern="window opens" test/startup.test.mjs
+
+      - name: Upload the build
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: noise-${{ matrix.platform }}
+          path: |
+            release/Noise-Mac.dmg
+            release/Noise-Mac-Apple-Chip.dmg
+            release/Noise-Mac-Intel.dmg
+            release/Noise-Windows.exe
+            release/Noise-Linux.AppImage
+            release/Noise-Linux-ARM.AppImage
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download the builds
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: builds
+          merge-multiple: true
+
+      - name: Attach the builds to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if gh release view "$TAG" > /dev/null 2>&1; then
+              gh release upload "$TAG" \
+                builds/Noise-Mac.dmg \
+                builds/Noise-Mac-Apple-Chip.dmg \
+                builds/Noise-Mac-Intel.dmg \
+                builds/Noise-Windows.exe \
+                builds/Noise-Linux.AppImage \
+                builds/Noise-Linux-ARM.AppImage \
+                --clobber
+              gh release edit "$TAG" --draft=false --latest
+              exit 0
+            fi
+            echo "No release for $TAG yet. Waiting a minute (attempt $attempt of 30)."
+            sleep 60
+          done
+          echo "No release for $TAG after 30 minutes. Create it as a draft, then re-run this job."
+          exit 1

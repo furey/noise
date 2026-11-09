@@ -11,6 +11,7 @@ import { createView } from './ui/view.js'
 const MAX_DPR = 2
 
 const start = () => {
+  markDesktop()
   const engine = createEngine()
   const app = createApp({ engine, settings: loadSettings(), persist: saveSettings })
   const view = createView(document)
@@ -68,6 +69,20 @@ const readInsets = () => {
   const read = side => parseFloat(style[`padding${side}`]) || 0
   return { top: read('Top'), right: read('Right'), bottom: read('Bottom'), left: read('Left') }
 }
+
+const markDesktop = () => {
+  if (location.protocol !== 'app:') return
+  const root = document.documentElement
+  root.classList.add('desktop')
+  if (!isMac()) return
+  root.classList.add('mac')
+  const strip = document.createElement('div')
+  strip.className = 'titlebar'
+  strip.setAttribute('aria-hidden', 'true')
+  document.body.prepend(strip)
+}
+
+const isMac = () => /^mac/i.test(navigator.userAgentData?.platform || navigator.platform || '')
 
 const registerServiceWorker = () => {
   if (!import.meta.env.PROD || !('serviceWorker' in navigator) || !location.protocol.startsWith('http')) return
