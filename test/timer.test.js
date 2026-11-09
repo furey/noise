@@ -10,58 +10,57 @@ const cycle = (timer, times) => Array.from({ length: times }).reduce(cycleTimer,
 
 const run = (timer, minutes) => tickTimer({ timer, elapsed: minutes * MINUTE, playing: true }).timer
 
-test('the timer cycles 60, 30, 15, 5, then off', () => {
+test('the timer cycles 30, 20, 10, then off', () => {
   const minutes = []
   let timer = createTimer()
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 4; i++) {
     timer = cycleTimer(timer)
     minutes.push(timer.left / MINUTE)
   }
-  assert.deepEqual(minutes, [60, 30, 15, 5, 0])
+  assert.deepEqual(minutes, [30, 20, 10, 0])
   assert.equal(isTimerOn(timer), false)
 })
 
-test('each setting shows a square of 4, 3, 2, then 1 cells across', () => {
-  assert.deepEqual([0, 1, 2, 3, 4].map(n => timerSize(cycle(createTimer(), n))), [0, 4, 3, 2, 1])
+test('each setting shows 3, 2, then 1 dots', () => {
+  assert.deepEqual([0, 1, 2, 3].map(n => timerSize(cycle(createTimer(), n))), [0, 3, 2, 1])
 })
 
-test('the square shrinks as the time runs down', () => {
-  const hour = cycle(createTimer(), 1)
-  assert.equal(timerSize(run(hour, 29)), 4)
-  assert.equal(timerSize(run(hour, 30)), 3)
-  assert.equal(timerSize(run(hour, 45)), 2)
-  assert.equal(timerSize(run(hour, 55)), 1)
-  assert.equal(timerSize(run(hour, 59.9)), 1)
+test('a dot drains every 10 minutes', () => {
+  const half = cycle(createTimer(), 1)
+  assert.equal(timerSize(run(half, 9.9)), 3)
+  assert.equal(timerSize(run(half, 10)), 2)
+  assert.equal(timerSize(run(half, 20)), 1)
+  assert.equal(timerSize(run(half, 29.9)), 1)
 })
 
-test('a tap on a shrunken timer moves one size below what shows', () => {
-  const shrunk = run(cycle(createTimer(), 1), 40)
-  assert.equal(timerSize(shrunk), 3)
-  assert.equal(cycleTimer(shrunk).left, 15 * MINUTE)
-  assert.equal(cycleTimer(run(shrunk, 19.5)).left, 0)
+test('a tap on a drained timer moves one dot below what shows', () => {
+  const drained = run(cycle(createTimer(), 1), 12)
+  assert.equal(timerSize(drained), 2)
+  assert.equal(cycleTimer(drained).left, 10 * MINUTE)
+  assert.equal(cycleTimer(run(drained, 9.5)).left, 0)
 })
 
 test('the timer holds while paused', () => {
-  const timer = cycle(createTimer(), 3)
+  const timer = cycle(createTimer(), 2)
   const { timer: next, event } = tickTimer({ timer, elapsed: 5 * MINUTE, playing: false })
   assert.equal(next.left, timer.left)
   assert.equal(event, null)
 })
 
 test('the last minute fades once, then the timer ends and turns off', () => {
-  let timer = cycle(createTimer(), 3)
+  let timer = cycle(createTimer(), 2)
   const events = []
-  for (let s = 0; s < 15 * 60; s++) {
+  for (let s = 0; s < 20 * 60; s++) {
     const result = tickTimer({ timer, elapsed: 1000, playing: true })
     timer = result.timer
     if (result.event) events.push([s, result.event])
   }
-  assert.deepEqual(events, [[839, 'fade'], [899, 'end']])
+  assert.deepEqual(events, [[1139, 'fade'], [1199, 'end']])
   assert.deepEqual(timer, createTimer())
 })
 
 test('unfading lets the fade start again', () => {
-  let timer = tickTimer({ timer: cycle(createTimer(), 3), elapsed: 14.5 * MINUTE, playing: true }).timer
+  let timer = tickTimer({ timer: cycle(createTimer(), 2), elapsed: 19.5 * MINUTE, playing: true }).timer
   assert.equal(timer.fading, true)
   timer = unfade(timer)
   assert.equal(tickTimer({ timer, elapsed: 1000, playing: true }).event, 'fade')

@@ -139,14 +139,14 @@ const stopClock = app => {
 const startWave = app => {
   const { state, tide } = app
   state.wave = true
-  restartTide(app)
+  restartTide(app, { quick: true })
   tide.id = setInterval(() => flowTide(app), WAVE_TICK_MS)
   if (!state.playing) setPlaying(app, true)
   notify(app)
 }
 
-const restartTide = app => {
-  Object.assign(app.tide, { wave: createWave({ from: app.state.pos }), seconds: 0, last: performance.now() })
+const restartTide = (app, { quick = false } = {}) => {
+  Object.assign(app.tide, { wave: createWave({ from: app.state.pos, quick }), seconds: 0, last: performance.now() })
 }
 
 const stopWave = app => {

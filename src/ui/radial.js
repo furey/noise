@@ -114,8 +114,8 @@ const polar = ({ geometry, col, row, spin, bands }) => {
 const bandAngle = ({ band, bands, spin, side }) => side * band / (bands - 1) * Math.PI + spin
 
 const radialGradient = ({ g, grid, geometry, palette }) => {
-  const x = (grid.ox + (geometry.cx + 0.5) * grid.cellW) * grid.dpr
-  const y = (grid.oy + (geometry.cy + 0.5) * grid.stepY) * grid.dpr
+  const x = ((geometry.cx + 0.5) * grid.cellW) * grid.dpr
+  const y = ((geometry.cy + 0.5) * grid.stepY) * grid.dpr
   const gradient = g.createRadialGradient(x, y, geometry.hole * grid.cellW * grid.dpr, x, y, geometry.reach * grid.cellW * grid.dpr)
   gradient.addColorStop(0, palette.high)
   gradient.addColorStop(0.45, palette.mid)

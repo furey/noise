@@ -40,3 +40,10 @@ test('forgetting past breaths keeps the wave going', () => {
   assert.ok(wave.segments.length < 6)
   assert.ok(Number.isFinite(waveAt(wave, 121).pos))
 })
+
+test('a quick start glides to brown at once and starts rising', () => {
+  const wave = createWave({ seed: 4, from: 2, quick: true })
+  assert.ok(wave.segments[0].end <= 0.6)
+  assert.ok(waveAt(wave, 1.5).pos > 0)
+  assert.equal(waveAt(createWave({ seed: 4, from: 0, quick: true }), 0).pos, 0)
+})

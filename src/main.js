@@ -9,6 +9,7 @@ import { createSynth } from './ui/synth.js'
 import { createView } from './ui/view.js'
 
 const MAX_DPR = 2
+const LATE_INSETS_MS = 500
 const MAX_BACKING_PIXELS = 3840 * 2160
 
 const start = () => {
@@ -33,6 +34,8 @@ const start = () => {
   const scheduleRelayout = oncePerFrame(relayout)
   relayout()
   addEventListener('resize', scheduleRelayout)
+  addEventListener('load', scheduleRelayout)
+  setTimeout(scheduleRelayout, LATE_INSETS_MS)
   watchPixelRatio(scheduleRelayout)
   addEventListener('pagehide', () => app.halt())
   addEventListener('pageshow', e => e.persisted && prepareAudio(engine))
@@ -67,7 +70,7 @@ const measureLayout = () => {
   const width = spec.clientWidth || innerWidth
   const height = spec.clientHeight || innerHeight
   const insets = readInsets()
-  return measureGrid({ width, height, dpr: backingDpr(width, height), insets, framed: isFramedScreen(insets) })
+  return measureGrid({ width, height, dpr: backingDpr(width, height), insets })
 }
 
 const backingDpr = (width, height) =>
@@ -89,13 +92,6 @@ const watchPixelRatio = onChange => {
     onChange()
     watchPixelRatio(onChange)
   }, { once: true })
-}
-
-const isFramedScreen = insets => {
-  const param = new URLSearchParams(location.search).get('frame')
-  if (param !== null) return Number(param) || true
-  const fullScreen = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true
-  return fullScreen && (insets.top > 0 || insets.bottom > 0)
 }
 
 const readInsets = () => {

@@ -1,4 +1,4 @@
-export const TIMER_STEPS = [{ size: 4, minutes: 60 }, { size: 3, minutes: 30 }, { size: 2, minutes: 15 }, { size: 1, minutes: 5 }]
+export const TIMER_STEPS = [{ size: 3, minutes: 30 }, { size: 2, minutes: 20 }, { size: 1, minutes: 10 }]
 export const TIMER_FADE_MS = 60000
 export const TIMER_OFF_ALPHA = 0.33
 export const TIMER_BLINK_LOW = 0.66

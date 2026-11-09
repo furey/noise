@@ -199,23 +199,22 @@ On a phone:
 
 ### Sleep timer
 
-The timer is in the top-right corner. When it is off, it is one dim cell. Each tap moves it to the next setting:
+The timer is in the top-right corner. When it is off, it is one dim dot. Each tap moves it to the next setting:
 
-| Setting      | Square          |
-| ------------ | --------------- |
-| `60` minutes | `4` × `4` cells |
-| `30` minutes | `3` × `3` cells |
-| `15` minutes | `2` × `2` cells |
-| `5` minutes  | `1` cell        |
-| Off          | `1` dim cell    |
+| Setting      | Dots        |
+| ------------ | ----------- |
+| `30` minutes | `3`         |
+| `20` minutes | `2`         |
+| `10` minutes | `1`         |
+| Off          | `1` dim dot |
 
-The square gets smaller as the time runs down, so a `60` minute timer shows `3` × `3` when `30` minutes are left. A tap on the timer moves it to the size below the one you see. While the sound plays, the square blinks: full brightness for one second, then dimmer for one second.
+One dot goes out every `10` minutes. A tap on the timer moves it to one dot fewer than you see. While the sound plays, the dots blink: full brightness for one second, then dimmer for one second.
 
 The timer counts down only while the sound plays. In the last minute, the sound fades out, then it stops.
 
 ### Wave mode
 
-The dot in the top-left corner turns wave mode on and off. In wave mode, the noise breathes like the sea: it rises from brown to a random colour, holds, then eases back to brown, with a gentle swell in volume. The dot is white while wave mode is on.
+The dot in the top-left corner turns wave mode on and off. In wave mode, the colour slides to brown, then the noise breathes like the sea: it rises from brown to a random colour, holds, then eases back to brown, with a gentle swell in volume. The dot is white while wave mode is on.
 
 The synth changes shape in wave mode. The bars point out from the centre of the screen, each with its own white peak block, and the circle turns slowly. A drag on the colour strip moves the wave to that colour, and the wave carries on from there.
 

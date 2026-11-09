@@ -2,6 +2,7 @@ export const WAVE_TICK_MS = 50
 export const WAVE_GLIDE_S = 0.25
 
 const SHORE = 0
+const QUICK_RETURN_S = 0.3
 const SWELL_VOLUME = 0.16
 const RIPPLE_VOLUME = 0.025
 const CRESTS = [
@@ -10,15 +11,16 @@ const CRESTS = [
   { weight: 1, from: 2.1, to: 2.8 },
 ]
 
-export const createWave = ({ seed = Date.now(), from = SHORE } = {}) => {
+export const createWave = ({ seed = Date.now(), from = SHORE, quick = false } = {}) => {
   const random = mulberry32(seed)
   const wave = { random, segments: [], end: 0, ripples: rippleSet(random) }
-  push(wave, { kind: 'fall', from, to: SHORE, seconds: between(random, 3, 5) })
+  const seconds = quick ? QUICK_RETURN_S * from : between(random, 3, 5)
+  if (seconds > 0) push(wave, { kind: 'fall', from, to: SHORE, seconds })
   return wave
 }
 
 export const waveAt = (wave, seconds) => {
-  while (wave.end <= seconds) breathe(wave)
+  while (wave.end <= seconds || !wave.segments.length) breathe(wave)
   const segment = wave.segments.find(each => seconds < each.end)
   const t = (seconds - segment.start) / segment.seconds
   const pos = segment.from + (segment.to - segment.from) * easeInOut(t)
