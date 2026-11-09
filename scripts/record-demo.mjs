@@ -139,11 +139,11 @@ const SHOTS = {
     })],
   },
   wave: {
-    width: 1600, height: 1000, poster: 20,
-    devices: [desktopDevice({
-      viewport: { width: 1440, height: 856 }, dpr: 1, x: 80, y: 52, bar: 40, pointer: { ...MOUSE, dot: 0, ring: 0 },
-      settings: { pos: 0, volume: 0.6 },
-      script: [['wait', 0.5], ['type', 'wave'], ['wait', 75]],
+    width: 916, height: 1824, poster: 12,
+    devices: [touchDevice({
+      viewport: { width: 390, height: 844 }, dpr: 2, x: 68, y: 68, bezel: 28, radius: 94, pointer: TOUCH,
+      insets: PHONE_INSETS, settings: { pos: 0.4, volume: 0.7 },
+      script: [['wait', 1], ['tap', 'centre'], ['wait', 4], ['tap', 'wave'], ['wait', 26], ['tap', 'wave'], ['wait', 6]],
     })],
   },
   devices: {
@@ -222,6 +222,7 @@ const spotsFor = (grid, viewport) => {
     volumeUp: [viewport.width * 0.6, synth * 0.13],
     volumeDown: [viewport.width * 0.6, synth * 0.85],
     timer: [timer.left + timer.width / 2, timer.top + timer.height / 2],
+    wave: [viewport.width - timer.left - timer.width / 2, timer.top + timer.height / 2],
     colour: pos => [(pos / LAST * (grid.cols - 1) + 0.5) * grid.cellW, colourY],
   }
 }

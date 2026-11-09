@@ -1,7 +1,7 @@
 import { COLOUR_ROW_SHADES, LAST, LIGHT_INK, colourAt, inkRgb, isDarkInk, paletteFor, rgba, shadeRgb } from './colours.js'
 import { COLOUR_ROWS, fillCell, isReserved, waveCol } from './grid.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
-import { createRadial, drawRadial, stepRadial } from './radial.js'
+import { createRadial, drawFlock, drawRadial, linearShare, stepRadial } from './radial.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
 import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
@@ -12,9 +12,9 @@ const INK_ALPHAS = [1, TIMER_BLINK_LOW, TIMER_OFF_ALPHA]
 const SELECTOR_HALF = 1
 const SELECTOR_FILL = rgba(LIGHT_INK, 1)
 
-export const createSynth = ({ spec, fx, radialMode = 'burst' }) => {
+export const createSynth = ({ spec, fx }) => {
   const view = {
-    spec, fx, radialMode,
+    spec, fx,
     radial: createRadial(),
     g: spec.getContext('2d'),
     fg: fx.getContext('2d'),
@@ -57,17 +57,21 @@ const draw = (view, frame) => {
   const tintSettled = stepTint(view, frame)
   const palette = paletteFor(frame)
   const size = timerSize(frame.timer)
-  const visualising = frame.wave && frame.playing
+  const { radial } = view
+  stepRadial(radial, { levels: view.spectrum.levels, dt: frame.dt, volume: frame.volume, wave: frame.wave, reducedMotion: frame.reducedMotion, t: frame.now / 1000 })
+  const linear = radial.morph === 0
+  const ink = inkStyle(view, 1)
   view.g.clearRect(0, 0, view.spec.width, view.spec.height)
-  if (visualising) drawVisualiser({ view, frame, palette, size })
-  else drawBars({ view, palette, size, playing: frame.playing })
-  if (!visualising) drawChips(view, size)
+  drawBars({ view, palette, size, playing: frame.playing, scale: linearShare(radial) })
+  if (linear) drawChips(view, size)
+  else drawRadial({ g: view.g, grid, radial, size, palette, ink })
+  drawFlock({ g: view.g, grid, radial, chips, size, ink })
   drawColourRows(view, frame.pos)
   drawTimer({ view, frame, palette, size })
   drawWaveDot({ view, frame, palette })
-  const pixelCount = visualising ? 0 : drawPixels({ view, frame, palette, size })
-  if (visualising) hidePixels(view)
-  return frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
+  const pixelCount = linear ? drawPixels({ view, frame, palette, size }) : 0
+  if (!linear) hidePixels(view)
+  return (radial.morph > 0 && radial.morph < 1) || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
 }
 
 const updateLevels = (view, { analyser, playing, sampleRate, volume }) => {
@@ -85,12 +89,12 @@ const stepTint = (view, frame) => {
   return view.tint === target
 }
 
-const drawBars = ({ view, palette, size, playing }) => {
+const drawBars = ({ view, palette, size, playing, scale }) => {
   const { g, grid, spectrum } = view
   const lit = gradientFor(view, palette)
   let current = null
   for (let col = 0; col < grid.cols; col++) {
-    const litSegments = Math.round(spectrum.levels[col] * grid.synthRows)
+    const litSegments = Math.round(spectrum.levels[col] * scale * grid.synthRows)
     const restSegment = playing || litSegments > 0 ? -1 : 0
     for (let seg = 0; seg < grid.synthRows; seg++) {
       const row = grid.synthRows - 1 - seg
@@ -147,12 +151,6 @@ const drawTimer = ({ view, frame, palette, size }) => {
 const hidePixels = view => {
   clearPixels(view.pixels)
   view.fg.clearRect(0, 0, view.fx.width, view.fx.height)
-}
-
-const drawVisualiser = ({ view, frame, palette, size }) => {
-  const { g, grid, spectrum, radial, radialMode: mode } = view
-  stepRadial(radial, { levels: spectrum.levels, dt: frame.dt, volume: frame.volume, mode, reducedMotion: frame.reducedMotion })
-  drawRadial({ g, grid, radial, levels: spectrum.levels, size, mode, palette, ink: inkStyle(view, 1) })
 }
 
 const drawPixels = ({ view, frame, palette, size }) => {
