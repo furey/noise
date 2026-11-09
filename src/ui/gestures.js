@@ -1,7 +1,5 @@
 export const TAP_SLOP_PX = 8
 export const TAP_MAX_MS = 400
-export const DOUBLE_TAP_MS = 350
-export const DOUBLE_TAP_PX = 40
 
 export const bindGestures = ({ surface, zoneAt, onPress, onDrag, onRelease, onTap, onHover }) => {
   const press = { id: null, zone: 'synth', x: 0, y: 0, t: 0, moved: false }
@@ -36,15 +34,3 @@ export const classifyRelease = ({ moved, elapsed, cancelled }) => {
   return elapsed < TAP_MAX_MS ? 'tap' : 'none'
 }
 
-export const createTapTracker = () => ({ t: -Infinity, x: 0, y: 0 })
-
-export const registerTap = (tracker, tap) => {
-  const isDouble = tap.t - tracker.t < DOUBLE_TAP_MS && Math.hypot(tap.x - tracker.x, tap.y - tracker.y) < DOUBLE_TAP_PX
-  if (isDouble) resetTaps(tracker)
-  else Object.assign(tracker, tap)
-  return isDouble ? 'double' : 'single'
-}
-
-export const resetTaps = tracker => {
-  tracker.t = -Infinity
-}

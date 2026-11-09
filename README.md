@@ -22,7 +22,7 @@
   <a href="#download"><strong>Download for your computer →</strong></a>
 </p>
 
-<https://github.com/user-attachments/assets/338852c1-0f6d-4ab4-ac80-d0d13324deb7>
+<https://github.com/user-attachments/assets/2c13b2e2-711d-4bf9-a8bd-6784eb43e90e>
 
 ## Contents
 
@@ -178,25 +178,37 @@ From the home screen, Noise opens full screen, like an app. After the first visi
 The screen has two parts: the synth, which fills most of the screen, and the colour strip, the three rows of colour at the bottom.
 
 - **Play**: tap the synth. A tap on the colour strip also plays.
-- **Pause**: double-tap the synth or the colour strip.
+- **Pause**: tap the synth while the sound plays.
 - **Colour**: tap or drag along the colour strip. A white block, three cells wide and three cells high, marks the colour you hear.
-- **Volume**: drag up or down on the synth, from `10%` to `100%`. At a louder volume, the bars are taller and more particles fly off them.
+- **Volume**: while the sound plays, drag up or down on the synth, from `10%` to `100%`. At a louder volume, the bars are taller and more particles fly off them.
+
+With a mouse, the pointer shows what a click or drag does: a hand on the synth while the sound is stopped, up and down arrows on the synth while it plays, left and right arrows on the colour strip, and an hourglass on the timer.
 
 The desktop app:
 
-<https://github.com/user-attachments/assets/6da66be0-5d79-4fa2-b475-d1005a9d1196>
+<https://github.com/user-attachments/assets/3840ae44-add9-4a8b-850c-3996a2502bbd>
 
 On a tablet:
 
-<https://github.com/user-attachments/assets/0349a8e5-6180-4834-91a0-310a7c5efbcc>
+<https://github.com/user-attachments/assets/671176f3-85f2-4610-a5b3-37531b4543f8>
 
 On a phone:
 
-<https://github.com/user-attachments/assets/3e603247-cc4d-4a46-a484-77ed1c3a5fe6>
+<https://github.com/user-attachments/assets/5a4ba43e-9262-4c65-b2f8-ab908beb814c>
 
 ### Sleep timer
 
-The timer is the cell in the top-right corner. Each tap moves it to the next setting: `60`, `50`, `40`, `30`, `20`, `10` minutes, then off. One square is `10` minutes.
+The timer is in the top-right corner. When it is off, it is one dim cell. Each tap moves it to the next setting:
+
+| Setting      | Square          |
+| ------------ | --------------- |
+| `60` minutes | `4` × `4` cells |
+| `30` minutes | `3` × `3` cells |
+| `15` minutes | `2` × `2` cells |
+| `5` minutes  | `1` cell        |
+| Off          | `1` dim cell    |
+
+The square gets smaller as the time runs down, so a `60` minute timer shows `3` × `3` when `30` minutes are left. A tap on the timer moves it to the size below the one you see. While the sound plays, the square blinks: full brightness for one second, then dimmer for one second.
 
 The timer counts down only while the sound plays. In the last minute, the sound fades out, then it stops.
 

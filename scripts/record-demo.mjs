@@ -40,15 +40,13 @@ const fullScript = ({ glide, drag, from, to }) => [
   ['wait', 0.3],
   ['glide', 'timer', glide],
   ['tap', 'timer'],
-  ['wait', 0.2],
+  ['wait', 0.6],
   ['tap', 'timer'],
-  ['wait', 0.2],
+  ['wait', 0.6],
   ['tap', 'timer'],
-  ['wait', 0.2],
-  ['tap', 'timer'],
-  ['wait', 0.5],
+  ['wait', 0.6],
   ['glide', 'centre', glide],
-  ['doubleTap', 'centre'],
+  ['tap', 'centre'],
   ['wait', 1.6],
 ]
 
@@ -75,19 +73,17 @@ const heroScript = ({ from, to }) => [
   ['caption', 'Tap the corner square to set a sleep timer'],
   ['glide', 'timer', 0.4],
   ['tap', 'timer'],
-  ['wait', 0.6],
+  ['wait', 1.4],
   ['tap', 'timer'],
-  ['wait', 0.6],
-  ['tap', 'timer'],
-  ['wait', 1.2],
+  ['wait', 1.4],
   ['glide', `colour:${to}`, 0.4],
   ['press', `colour:${to}`],
   ['drag', `colour:${from}`, 2.6],
   ['release'],
   ['wait', 0.8],
-  ['caption', 'Double-tap to pause'],
+  ['caption', 'Tap to pause'],
   ['glide', 'centre', 0.4],
-  ['doubleTap', 'centre'],
+  ['tap', 'centre'],
   ['wait', 2.0],
 ]
 
@@ -209,7 +205,7 @@ const openSession = async ({ browser, device }) => {
 
 const spotsFor = (grid, viewport) => {
   const synth = grid.synthRows * grid.stepY
-  const timer = timerHitBox(grid)
+  const timer = timerHitBox(grid, 0)
   const colourY = (grid.colourTop + 1.5) * grid.stepY
   return {
     centre: [viewport.width * 0.5, synth * 0.42],
@@ -273,11 +269,6 @@ const buildTimeline = ({ device, spots }) => {
       push(['up'])
       state.down = false
       push()
-    },
-    doubleTap: target => {
-      state.at = spot(spots, target)
-      tap([])
-      tap(['move', 'down', 'up', 'down', 'up'])
     },
   }
   for (const [kind, ...args] of device.script) actions[kind](...args)

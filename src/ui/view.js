@@ -1,6 +1,6 @@
 import { COLOURS, isDarkInk, layerOpacity, nearestColour, slopeText } from './colours.js'
 import { timerHitBox } from './grid.js'
-import { isTimerOn, timerLabel } from './timer.js'
+import { isTimerOn, timerLabel, timerSize } from './timer.js'
 
 export const createView = doc => {
   const view = {
@@ -11,10 +11,12 @@ export const createView = doc => {
     timer: doc.getElementById('timer'),
     slope: doc.getElementById('slope'),
     volume: doc.getElementById('volume'),
+    grid: null,
+    timerSize: 0,
   }
   return {
     render: state => render(view, state),
-    placeTimer: grid => placeTimer(view, grid),
+    placeTimer: grid => placeTimer(view, grid, view.timerSize),
   }
 }
 
@@ -28,6 +30,8 @@ const render = (view, state) => {
   view.play.setAttribute('aria-label', state.playing ? 'Pause' : 'Play')
   view.timer.setAttribute('aria-pressed', String(isTimerOn(state.timer)))
   view.timer.setAttribute('aria-label', timerLabel(state.timer))
+  const size = timerSize(state.timer)
+  if (size !== view.timerSize && view.grid) placeTimer(view, view.grid, size)
 }
 
 const renderInputs = (view, state) => {
@@ -38,8 +42,9 @@ const renderInputs = (view, state) => {
   view.volume.setAttribute('aria-valuetext', `${Math.round(state.volume * 100)} percent`)
 }
 
-const placeTimer = (view, grid) => {
-  const box = timerHitBox(grid)
+const placeTimer = (view, grid, size) => {
+  Object.assign(view, { grid, timerSize: size })
+  const box = timerHitBox(grid, size)
   Object.assign(view.timer.style, {
     left: `${box.left}px`,
     top: `${box.top}px`,

@@ -1,15 +1,15 @@
-export const TIMER_MINUTES = [0, 60, 50, 40, 30, 20, 10]
-export const TIMER_STEP_MS = 10 * 60000
+export const TIMER_STEPS = [{ size: 4, minutes: 60 }, { size: 3, minutes: 30 }, { size: 2, minutes: 15 }, { size: 1, minutes: 5 }]
 export const TIMER_FADE_MS = 60000
 export const TIMER_OFF_ALPHA = 0.33
 export const TIMER_BLINK_LOW = 0.66
 export const TIMER_BLINK_MS = 1000
 
-export const createTimer = () => ({ index: 0, left: 0, fading: false })
+export const createTimer = () => ({ left: 0, fading: false })
 
 export const cycleTimer = timer => {
-  const index = (timer.index + 1) % TIMER_MINUTES.length
-  return { index, left: TIMER_MINUTES[index] * 60000, fading: false }
+  const size = timerSize(timer)
+  const next = size ? TIMER_STEPS.find(step => step.size === size - 1) : TIMER_STEPS[0]
+  return { left: (next?.minutes ?? 0) * 60000, fading: false }
 }
 
 export const tickTimer = ({ timer, elapsed, playing }) => {
@@ -25,14 +25,18 @@ export const unfade = timer => timer.fading ? { ...timer, fading: false } : time
 
 export const isTimerOn = timer => timer.left > 0
 
-export const timerSquares = timer => Math.ceil(timer.left / TIMER_STEP_MS)
+export const timerSize = timer => {
+  if (!isTimerOn(timer)) return 0
+  const fits = TIMER_STEPS.findIndex((step, index) => timer.left > (TIMER_STEPS[index + 1]?.minutes ?? 0) * 60000)
+  return TIMER_STEPS[fits].size
+}
 
 export const timerMinutesLeft = timer => Math.ceil(timer.left / 60000)
 
 export const timerAlpha = ({ timer, playing, now, reducedMotion }) => {
   if (!isTimerOn(timer)) return TIMER_OFF_ALPHA
   if (!playing || reducedMotion) return 1
-  return Math.floor(now / (TIMER_BLINK_MS / 2)) % 2 ? TIMER_BLINK_LOW : 1
+  return Math.floor(now / TIMER_BLINK_MS) % 2 ? TIMER_BLINK_LOW : 1
 }
 
 export const timerLabel = timer => isTimerOn(timer)

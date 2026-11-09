@@ -1,6 +1,6 @@
 import { COLOURS, LAST } from './colours.js'
 import { columnCentreX, posAtX, synthHeight, zoneAt } from './grid.js'
-import { bindGestures, createTapTracker, registerTap, resetTaps } from './gestures.js'
+import { bindGestures } from './gestures.js'
 
 const ARROWS = {
   ArrowLeft: app => app.nudgePos(-1),
@@ -11,7 +11,7 @@ const ARROWS = {
 
 export const bindControls = ({ app, doc, layout }) => {
   const surface = doc.getElementById('surface')
-  const controls = { app, doc, layout, surface, taps: createTapTracker(), dragVolume: 0, playingAtPress: false }
+  const controls = { app, doc, layout, surface, dragVolume: 0, playingAtPress: false }
   const unbinders = [
     bindSurface(controls),
     listen(doc.getElementById('play'), 'click', () => app.togglePlay()),
@@ -41,21 +41,21 @@ const onPress = (controls, { zone, x }) => {
   if (zone === 'colour') beginColourDrag(controls, x)
 }
 
-const onDrag = ({ app, layout, dragVolume }, { zone, x, dy }) => {
+const onDrag = ({ app, layout, surface, dragVolume, playingAtPress }, { zone, x, dy }) => {
   if (zone === 'colour') return app.setPos(posAtX({ grid: layout.grid, x, last: LAST }))
+  if (!playingAtPress || !app.state.playing) return
+  surface.dataset.drag = 'volume'
   app.setVolume(dragVolume - dy / synthHeight(layout.grid))
 }
 
 const onRelease = (controls, { zone }) => {
-  if (zone === 'colour') endColourDrag(controls)
+  if (zone === 'colour') return endColourDrag(controls)
+  delete controls.surface.dataset.drag
 }
 
-const onTap = ({ app, taps, playingAtPress }, tap) => {
-  if (!playingAtPress) {
-    resetTaps(taps)
-    return app.setPlaying(true)
-  }
-  if (registerTap(taps, tap) === 'double') app.setPlaying(false)
+const onTap = ({ app, playingAtPress }, { zone }) => {
+  if (!playingAtPress) return app.setPlaying(true)
+  if (zone === 'synth') app.setPlaying(false)
 }
 
 const beginColourDrag = ({ app, doc, layout, surface }, x) => {

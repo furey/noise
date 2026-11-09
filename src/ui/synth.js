@@ -3,7 +3,7 @@ import { COLOUR_ROWS, fillCell, inTimer } from './grid.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
-import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSquares } from './timer.js'
+import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
 
 const INK_TINT_S = 0.4
 const INK_STEPS = 20
@@ -54,13 +54,13 @@ const draw = (view, frame) => {
   stepChips({ chips, levels: view.spectrum.levels, dt: frame.dt, segments: grid.synthRows, reducedMotion: frame.reducedMotion })
   const tintSettled = stepTint(view, frame)
   const palette = paletteFor(frame)
-  const squares = timerSquares(frame.timer)
+  const size = timerSize(frame.timer)
   view.g.clearRect(0, 0, view.spec.width, view.spec.height)
-  drawBars({ view, palette, squares, playing: frame.playing })
-  drawChips(view, squares)
+  drawBars({ view, palette, size, playing: frame.playing })
+  drawChips(view, size)
   drawColourRows(view, frame.pos)
-  drawTimer({ view, frame, squares })
-  const pixelCount = drawPixels({ view, frame, palette, squares })
+  drawTimer({ view, frame, size })
+  const pixelCount = drawPixels({ view, frame, palette, size })
   return frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
 }
 
@@ -79,7 +79,7 @@ const stepTint = (view, frame) => {
   return view.tint === target
 }
 
-const drawBars = ({ view, palette, squares, playing }) => {
+const drawBars = ({ view, palette, size, playing }) => {
   const { g, grid, spectrum } = view
   const lit = gradientFor(view, palette)
   let current = null
@@ -88,7 +88,7 @@ const drawBars = ({ view, palette, squares, playing }) => {
     const restSegment = playing || litSegments > 0 ? -1 : 0
     for (let seg = 0; seg < grid.synthRows; seg++) {
       const row = grid.synthRows - 1 - seg
-      if (inTimer(grid, squares, col, row)) continue
+      if (inTimer(grid, size, col, row)) continue
       const style = seg < litSegments ? lit : seg === restSegment ? palette.rest : palette.ghost
       if (style !== current) g.fillStyle = current = style
       fillCell(g, grid, col, row)
@@ -96,13 +96,13 @@ const drawBars = ({ view, palette, squares, playing }) => {
   }
 }
 
-const drawChips = (view, squares) => {
+const drawChips = (view, size) => {
   const { g, grid, chips } = view
   g.fillStyle = inkStyle(view, 1)
   for (const chip of chips) {
     if (chip.y <= 0) continue
     const row = grid.synthRows - 1 - chipSegment(chip, grid.synthRows)
-    if (!inTimer(grid, squares, chip.col, row)) fillCell(g, grid, chip.col, row)
+    if (!inTimer(grid, size, chip.col, row)) fillCell(g, grid, chip.col, row)
   }
 }
 
@@ -126,13 +126,16 @@ const drawSelector = ({ g, grid, pos }) => {
   }
 }
 
-const drawTimer = ({ view, frame, squares }) => {
+const drawTimer = ({ view, frame, size }) => {
   const { g, grid } = view
   g.fillStyle = inkStyle(view, timerAlpha(frame))
-  for (let k = 0; k < Math.max(1, squares); k++) fillCell(g, grid, grid.timerCol - k, grid.timerRow)
+  const cells = Math.max(1, size)
+  for (let row = grid.timerRow; row < grid.timerRow + cells; row++) {
+    for (let col = grid.timerCol - cells + 1; col <= grid.timerCol; col++) fillCell(g, grid, col, row)
+  }
 }
 
-const drawPixels = ({ view, frame, palette, squares }) => {
+const drawPixels = ({ view, frame, palette, size }) => {
   const { fx, fg, grid, pixels } = view
   if (frame.playing && !frame.reducedMotion) {
     emitPixels({ pixels, chips: view.chips, segments: grid.synthRows, volume: frame.volume })
@@ -140,7 +143,7 @@ const drawPixels = ({ view, frame, palette, squares }) => {
   const count = stepPixels({ pixels, dt: frame.dt })
   fg.clearRect(0, 0, fx.width, fx.height)
   for (const p of pixels.pool) {
-    if (!p.active || inTimer(grid, squares, p.col, p.row)) continue
+    if (!p.active || inTimer(grid, size, p.col, p.row)) continue
     fg.globalAlpha = pixelAlpha(p)
     fg.fillStyle = palette[p.tone]
     fillCell(fg, grid, p.col, p.row)

@@ -37,19 +37,18 @@ export const posAtX = ({ grid, x, last }) => clamp((x / grid.cellW - 0.5) / (gri
 
 export const columnCentreX = (grid, x) => (clamp(Math.floor(x / grid.cellW), 0, grid.cols - 1) + 0.5) * grid.cellW
 
-export const inTimer = (grid, squares, col, row) => row === grid.timerRow
-  && col <= grid.timerCol
-  && col > grid.timerCol - Math.max(1, squares)
+export const inTimer = (grid, size, col, row) => {
+  const cells = Math.max(1, size)
+  return col <= grid.timerCol && col > grid.timerCol - cells && row >= grid.timerRow && row < grid.timerRow + cells
+}
 
-export const timerHitBox = grid => {
-  const width = Math.max(TIMER_MIN_TAP_PX, grid.cellW)
-  const height = Math.max(TIMER_MIN_TAP_PX, grid.stepY)
-  return {
-    left: (grid.timerCol + 0.5) * grid.cellW - width / 2,
-    top: (grid.timerRow + 0.5) * grid.stepY - height / 2,
-    width,
-    height,
-  }
+export const timerHitBox = (grid, size) => {
+  const cells = Math.max(1, size)
+  const width = Math.max(TIMER_MIN_TAP_PX, cells * grid.cellW)
+  const height = Math.max(TIMER_MIN_TAP_PX, cells * grid.stepY)
+  const centreX = (grid.timerCol + 1 - cells / 2) * grid.cellW
+  const centreY = (grid.timerRow + cells / 2) * grid.stepY
+  return { left: centreX - width / 2, top: centreY - height / 2, width, height }
 }
 
 export const fillCell = (g, grid, col, row) => {
