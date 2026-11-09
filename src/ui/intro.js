@@ -11,8 +11,6 @@ export const INTRO_PATTERNS = {
   down: ({ y }) => y,
   left: ({ x }) => x,
   right: ({ x }) => 1 - x,
-  diagonalDown: ({ x, y }) => (x + y) / 2,
-  diagonalUp: ({ x, y }) => (x + 1 - y) / 2,
   centre: ({ x, y }) => Math.hypot(x - 0.5, y - 0.5) / Math.SQRT1_2,
   edges: ({ x, y }) => 1 - Math.max(Math.abs(x - 0.5), Math.abs(y - 0.5)) * 2,
 }
