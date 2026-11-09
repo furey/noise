@@ -2,7 +2,7 @@ import { COLOUR_ROW_SHADES, LAST, LIGHT_INK, colourAt, inkRgb, isDarkInk, palett
 import { COLOUR_ROWS, fillCell, isReserved, waveCol } from './grid.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
 import { createRadial, drawFlock, drawRadial, isRadialSettled, linearShare, stepRadial } from './radial.js'
-import { cellReveal, createIntro, introElapsed, isIntroDone, INTRO_STEPS } from './intro.js'
+import { advanceIntro, cellReveal, createIntro, isIntroDone, INTRO_STEPS } from './intro.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
 import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
@@ -48,7 +48,7 @@ const resize = (view, grid) => {
   view.rowFills = buildRowFills(grid)
   view.gradients.clear()
   if (!view.introDone && view.intro?.delays.length !== grid.cols * grid.rows) {
-    view.intro = { ...createIntro({ cells: grid.cols * grid.rows }), start: view.intro?.start ?? null }
+    view.intro = { ...createIntro({ cells: grid.cols * grid.rows }), elapsed: view.intro?.elapsed ?? 0 }
   }
 }
 
@@ -162,7 +162,7 @@ const drawTimer = ({ view, frame, palette, size }) => {
 const maskIntro = (view, frame) => {
   if (view.introDone) return false
   const { g, grid, intro } = view
-  const elapsed = introElapsed(intro, frame.now)
+  const elapsed = advanceIntro(intro, frame.dt * 1000)
   if (frame.reducedMotion || isIntroDone(elapsed)) {
     Object.assign(view, { intro: null, introDone: true })
     return false
