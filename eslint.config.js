@@ -12,7 +12,7 @@ export default [
   },
   {
     files: ['src/**/*.js'],
-    ignores: ['src/audio/noise.worklet.js'],
+    ignores: ['src/audio/noise.worklet.js', 'src/sw.js'],
     languageOptions: { globals: { ...globals.browser } },
   },
   {
@@ -20,7 +20,7 @@ export default [
     languageOptions: { globals: { ...globals.audioWorklet } },
   },
   {
-    files: ['public/sw.js'],
+    files: ['src/sw.js'],
     languageOptions: { globals: { ...globals.serviceworker } },
   },
   {
