@@ -22,7 +22,7 @@
   <a href="#download"><strong>Download for your computer →</strong></a>
 </p>
 
-<https://github.com/user-attachments/assets/aad2b86a-6957-48a3-86b0-5b03b8639fdb>
+<https://github.com/user-attachments/assets/ab675957-62fd-4911-89e5-cd6e3ee86d12>
 
 ## Contents
 

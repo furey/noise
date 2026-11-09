@@ -42,10 +42,10 @@ jobs:
       - name: Download Electron (retries GitHub 504s)
         shell: bash
         run: |
-          for attempt in 1 2 3 4 5; do
+          for attempt in $(seq 1 10); do
             node node_modules/electron/install.js && exit 0
-            echo "Electron download failed (attempt $attempt of 5). Waiting 30 seconds."
-            sleep 30
+            echo "Electron download failed (attempt $attempt of 10). Waiting 60 seconds."
+            sleep 60
           done
           exit 1
 
@@ -72,10 +72,10 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
         shell: bash
         run: |
-          for attempt in 1 2 3; do
+          for attempt in $(seq 1 5); do
             npm run dist -- "--$PLATFORM" && exit 0
-            echo "Build failed (attempt $attempt of 3). Waiting 30 seconds."
-            sleep 30
+            echo "Build failed (attempt $attempt of 5). Waiting 60 seconds."
+            sleep 60
           done
           exit 1
 

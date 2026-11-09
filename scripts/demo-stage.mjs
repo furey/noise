@@ -153,6 +153,7 @@ const installHarness = ({ workletSource, settings, insets }) => {
       log.push({ param: 'context', time: seconds() })
     }
     get currentTime() { return seconds() }
+    addEventListener() {}
     createGain() { return connectable({ gain: createParam('gain', 1) }) }
     createAnalyser() {
       const analyser = createAnalyser()
@@ -261,6 +262,7 @@ const installHarness = ({ workletSource, settings, insets }) => {
   }
   globalThis.AudioContext = FakeContext
   globalThis.webkitAudioContext = undefined
+  globalThis.MediaStreamAudioDestinationNode = undefined
   globalThis.AudioWorkletNode = FakeWorkletNode
   globalThis.MediaStreamAudioDestinationNode = undefined
   const overlay = { dot: null, ring: null }

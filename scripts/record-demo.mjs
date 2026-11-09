@@ -53,24 +53,36 @@ const fullScript = ({ glide, drag, from, to }) => [
 ]
 
 const heroScript = ({ from, to }) => [
-  ['wait', 1.2],
+  ['wait', 0.6],
+  ['caption', 'Tap to play'],
+  ['wait', 0.6],
   ['glide', 'centre', 0.35],
   ['tap', 'centre'],
   ['wait', 0.8],
+  ['caption', 'Drag along the colour strip to change the noise'],
   ['glide', `colour:${from}`, 0.35],
   ['press', `colour:${from}`],
   ['drag', `colour:${to}`, 3.2],
   ['release'],
+  ['wait', 0.3],
+  ['caption', 'Drag up or down to change the volume'],
   ['glide', 'volume', 0.35],
   ['press', 'volume'],
   ['drag', 'volumeUp', 0.9],
   ['wait', 0.2],
   ['drag', 'volumeDown', 1.0],
   ['release'],
-  ['wait', 1.1],
+  ['wait', 0.3],
+  ['caption', 'Drag back to brown noise'],
+  ['glide', `colour:${to}`, 0.35],
+  ['press', `colour:${to}`],
+  ['drag', `colour:${from}`, 2.4],
+  ['release'],
+  ['wait', 0.6],
+  ['caption', 'Double-tap to pause'],
   ['glide', 'centre', 0.35],
   ['doubleTap', 'centre'],
-  ['wait', 1.6],
+  ['wait', 1.8],
 ]
 
 const desktopDevice = ({ viewport, dpr, x, y, bar, settings, script, pointer }) => {
@@ -92,6 +104,11 @@ const touchDevice = ({ viewport, dpr, x, y, bezel, radius, settings, insets, scr
 const MOUSE = { mode: 'mouse', dot: 20, ring: 70 }
 const TOUCH = { mode: 'touch', dot: 46, ring: 96 }
 const PHONE_INSETS = { top: 47, right: 0, bottom: 34, left: 0 }
+
+const CAPTION = { size: 40, bottom: 84, fade: 0.25, colour: '#e8e8ea', font: '-apple-system, Helvetica Neue, sans-serif' }
+
+const HERO_SETTINGS = { pos: 0, volume: 0.6 }
+const HERO_SCRIPT = heroScript({ from: 0, to: 4 })
 
 const SHOTS = {
   desktop: {
@@ -121,15 +138,15 @@ const SHOTS = {
     devices: [
       desktopDevice({
         viewport: { width: 1440, height: 900 }, dpr: 0.55, x: 61, y: 381, bar: 24, pointer: MOUSE,
-        script: heroScript({ from: 0, to: 4 }),
+        settings: HERO_SETTINGS, script: HERO_SCRIPT,
       }),
       touchDevice({
         viewport: { width: 1024, height: 1366 }, dpr: 0.5, x: 932, y: 199, bezel: 18, radius: 12, pointer: TOUCH,
-        settings: { pos: 4, volume: 0.6 }, script: heroScript({ from: 4, to: 1 }),
+        settings: HERO_SETTINGS, script: HERO_SCRIPT,
       }),
       touchDevice({
         viewport: { width: 390, height: 844 }, dpr: 0.8, x: 1535, y: 213, bezel: 12, radius: 38, pointer: TOUCH,
-        insets: PHONE_INSETS, settings: { pos: 3, volume: 0.6 }, script: heroScript({ from: 3, to: 0 }),
+        insets: PHONE_INSETS, settings: HERO_SETTINGS, script: HERO_SCRIPT,
       }),
     ],
   },
@@ -153,17 +170,18 @@ const recordShot = async ({ browser, name, shot }) => {
   const sessions = []
   for (const device of shot.devices) sessions.push(await openSession({ browser, device }))
   const timelines = sessions.map(session => buildTimeline(session))
-  const frameCount = Math.max(...timelines.map(timeline => timeline.length))
+  const frameCount = Math.max(...timelines.map(timeline => timeline.cues.length))
   const starts = await Promise.all(sessions.map(session => virtualNow(session.page)))
   for (let frame = 0; frame < frameCount; frame++) {
-    await Promise.all(sessions.map((session, index) => playFrame({ session, cue: timelines[index][frame] ?? timelines[index].at(-1), dir: path.join(work, `d${index}`), frame })))
+    await Promise.all(sessions.map((session, index) => playFrame({ session, cue: timelines[index].cues[frame] ?? timelines[index].cues.at(-1), dir: path.join(work, `d${index}`), frame })))
   }
   const log = await automationLog(sessions[0].page)
   await Promise.all(sessions.map(session => session.context.close()))
   const duration = frameCount / FPS
   const audio = path.join(work, 'audio.m4a')
   const { gainDb } = await renderDemoAudio({ log, start: starts[0] / 1000, duration, out: audio })
-  await encode({ shot, work, framePng, audio, out: path.join(values.out, `demo-${name}.mp4`) })
+  const captions = await renderCaptions({ browser, shot, work, captions: timelines[0].captions, duration })
+  await encode({ shot, work, framePng, audio, captions, out: path.join(values.out, `demo-${name}.mp4`) })
   await poster({ shot, work, framePng, frame: Math.round(shot.poster * FPS), out: path.join(values.out, `demo-${name}.png`) })
   await fs.rm(work, { recursive: true })
   console.log(`demo-${name}: ${frameCount} frames, ${duration.toFixed(2)} s, audio gain ${gainDb.toFixed(1)} dB`)
@@ -202,7 +220,7 @@ const spot = (spots, name) => {
 
 const buildTimeline = ({ device, spots }) => {
   const cues = []
-  const state = { at: spots.rest, down: false, taps: [], touchStart: null }
+  const state = { at: spots.rest, down: false, taps: [], touchStart: null, captions: [] }
   const push = (ops = []) => cues.push({ at: [...state.at], down: state.down, ops, time: cues.length / FPS })
   const framesFor = seconds => Math.max(1, Math.round(seconds * FPS))
   const move = (to, seconds, op) => {
@@ -223,6 +241,7 @@ const buildTimeline = ({ device, spots }) => {
     for (let i = 0; i < 2; i++) push()
   }
   const actions = {
+    caption: text => state.captions.push({ text, start: cues.length / FPS }),
     wait: seconds => Array.from({ length: framesFor(seconds) }, () => push()),
     glide: (target, seconds) => move(spot(spots, target), seconds, device.pointer.mode === 'mouse' ? 'move' : null),
     tap: target => {
@@ -249,7 +268,10 @@ const buildTimeline = ({ device, spots }) => {
     },
   }
   for (const [kind, ...args] of device.script) actions[kind](...args)
-  return cues.map(cue => ({ ...cue, look: pointerLook({ cue, cues, taps: state.taps, pointer: device.pointer }) }))
+  return {
+    cues: cues.map(cue => ({ ...cue, look: pointerLook({ cue, cues, taps: state.taps, pointer: device.pointer }) })),
+    captions: state.captions,
+  }
 }
 
 const pointerLook = ({ cue, cues, taps, pointer }) => {
@@ -290,11 +312,41 @@ const layerGraph = ({ shot, inputs }) => {
   ].join(';')
 }
 
-const encode = async ({ shot, work, framePng, audio, out }) => {
+const renderCaptions = async ({ browser, shot, work, captions, duration }) => {
+  const rendered = []
+  for (const [index, caption] of captions.entries()) {
+    const file = path.join(work, `caption${index}.png`)
+    await renderSvg({ browser, svg: captionSvg({ shot, text: caption.text }), width: shot.width, height: shot.height, out: file })
+    rendered.push({ file, start: caption.start, end: captions[index + 1]?.start ?? duration })
+  }
+  return rendered
+}
+
+const captionSvg = ({ shot, text }) => `<svg xmlns="http://www.w3.org/2000/svg" width="${shot.width}" height="${shot.height}">`
+  + `<text x="${shot.width / 2}" y="${shot.height - CAPTION.bottom}" text-anchor="middle" font-family="${CAPTION.font}" `
+  + `font-size="${CAPTION.size}" font-weight="500" fill="${CAPTION.colour}">${text}</text></svg>`
+
+const captionGraph = ({ captions, inputs, from }) => {
+  if (!captions.length) return { graph: [], out: from }
+  const graph = captions.flatMap((caption, index) => {
+    const fadeOut = Math.max(caption.start, caption.end - CAPTION.fade)
+    const input = `[${inputs + index}:v]format=rgba,fade=in:st=${caption.start}:d=${CAPTION.fade}:alpha=1,`
+      + `fade=out:st=${fadeOut}:d=${CAPTION.fade}:alpha=1[c${index}]`
+    const into = index === 0 ? from : `[t${index}]`
+    const shown = `enable='between(t,${caption.start},${caption.end})'`
+    return [input, `${into}[c${index}]overlay=0:0:${shown}[t${index + 1}]`]
+  })
+  return { graph, out: `[t${captions.length}]` }
+}
+
+const encode = async ({ shot, work, framePng, audio, captions, out }) => {
   const sequences = shot.devices.flatMap((_, index) => ['-framerate', String(FPS), '-i', path.join(work, `d${index}`, '%05d.png')])
+  const captionInputs = captions.flatMap(caption => ['-loop', '1', '-framerate', String(FPS), '-t', String(caption.end), '-i', caption.file])
+  const layers = layerGraph({ shot, inputs: 1 }).replace(',format=yuv420p[v]', '[framed]')
+  const overlays = captionGraph({ captions, inputs: shot.devices.length + 2, from: '[framed]' })
   await ffmpeg([
-    '-i', framePng, ...sequences, '-i', audio,
-    '-filter_complex', layerGraph({ shot, inputs: 1 }),
+    '-i', framePng, ...sequences, '-i', audio, ...captionInputs,
+    '-filter_complex', [layers, ...overlays.graph, `${overlays.out}format=yuv420p[v]`].join(';'),
     '-map', '[v]', '-map', `${shot.devices.length + 1}:a`,
     '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', values.crf, '-pix_fmt', 'yuv420p',
     '-r', String(FPS), '-c:a', 'copy', '-shortest', '-movflags', '+faststart', out,
