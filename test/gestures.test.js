@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  TAP_MAX_MS, TAP_SLOP_PX, classifyRelease, hasMoved,
+  KNOCK_GAP_MS, TAP_MAX_MS, TAP_SLOP_PX, classifyRelease, createKnocks, hasMoved, registerKnock,
 } from '../src/ui/gestures.js'
 
 test('a short still press is a tap', () => {
@@ -23,3 +23,15 @@ test('a cancelled pointer is ignored', () => {
   assert.equal(classifyRelease({ moved: false, elapsed: 50, cancelled: true }), 'none')
 })
 
+
+test('four quick knocks start wave mode, then the count starts again', () => {
+  const knocks = createKnocks()
+  assert.deepEqual([0, 200, 400, 600].map(t => registerKnock(knocks, t)), [false, false, false, true])
+  assert.equal(registerKnock(knocks, 700), false)
+})
+
+test('a slow knock starts the count again', () => {
+  const knocks = createKnocks()
+  const times = [0, 200, 400, 400 + KNOCK_GAP_MS, 500, 600, 700]
+  assert.deepEqual(times.map(t => registerKnock(knocks, t)), [false, false, false, false, false, false, true])
+})

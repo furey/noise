@@ -51,6 +51,12 @@ export const timerHitBox = (grid, size) => {
   return { left: centreX - width / 2, top: centreY - height / 2, width, height }
 }
 
+export const inWaveCorner = (grid, x, y) => {
+  const timer = timerHitBox(grid, 0)
+  const left = grid.width - timer.left - timer.width
+  return x >= left && x <= left + timer.width && y >= timer.top && y <= timer.top + timer.height
+}
+
 export const fillCell = (g, grid, col, row) => {
   const { dpr, gap, cellW, stepY } = grid
   const half = gap / 2

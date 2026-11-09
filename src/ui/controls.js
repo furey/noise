@@ -1,6 +1,6 @@
 import { COLOURS, LAST } from './colours.js'
-import { columnCentreX, posAtX, synthHeight, zoneAt } from './grid.js'
-import { bindGestures } from './gestures.js'
+import { columnCentreX, inWaveCorner, posAtX, synthHeight, zoneAt } from './grid.js'
+import { KNOCK_GAP_MS, bindGestures, createKnocks, registerKnock } from './gestures.js'
 
 const WAVE_WORD = 'wave'
 const WAVE_WORD_MS = 2000
@@ -14,7 +14,7 @@ const ARROWS = {
 
 export const bindControls = ({ app, doc, layout }) => {
   const surface = doc.getElementById('surface')
-  const controls = { app, doc, layout, surface, dragVolume: 0, playingAtPress: false, typed: { text: '', t: 0 } }
+  const controls = { app, doc, layout, surface, dragVolume: 0, playingAtPress: false, typed: { text: '', t: 0 }, knocks: createKnocks(), knockTimer: 0 }
   const unbinders = [
     bindSurface(controls),
     listen(doc.getElementById('play'), 'click', () => app.togglePlay()),
@@ -33,7 +33,6 @@ const bindSurface = controls => bindGestures({
   onDrag: drag => onDrag(controls, drag),
   onRelease: press => onRelease(controls, press),
   onTap: tap => onTap(controls, tap),
-  onChord: () => controls.app.toggleWave(),
   onHover: zone => {
     controls.surface.dataset.zone = zone
   },
@@ -57,7 +56,14 @@ const onRelease = (controls, { zone }) => {
   delete controls.surface.dataset.drag
 }
 
-const onTap = ({ app, playingAtPress }, { zone }) => {
+const onTap = (controls, tap) => {
+  if (!inWaveCorner(controls.layout.grid, tap.x, tap.y)) return tapSynth(controls, tap)
+  clearTimeout(controls.knockTimer)
+  if (registerKnock(controls.knocks, tap.t)) return controls.app.toggleWave()
+  controls.knockTimer = setTimeout(() => tapSynth({ ...controls, playingAtPress: controls.app.state.playing }, tap), KNOCK_GAP_MS)
+}
+
+const tapSynth = ({ app, playingAtPress }, { zone }) => {
   if (!playingAtPress) return app.setPlaying(true)
   if (zone === 'synth') app.setPlaying(false)
 }
