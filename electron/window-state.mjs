@@ -1,8 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-export const DEFAULT_BOUNDS = Object.freeze({ width: 1100, height: 720 })
-export const MIN_SIZE = Object.freeze({ width: 420, height: 520 })
+export const DEFAULT_BOUNDS = Object.freeze({ width: 960, height: 600 })
+export const MIN_SIZE = Object.freeze({ width: 280, height: 220 })
 
 export const createWindowState = ({ folder, displays }) => {
   const filePath = path.join(folder, 'window-state.json')
