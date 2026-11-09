@@ -22,7 +22,7 @@
   <a href="#download"><strong>Download for your computer →</strong></a>
 </p>
 
-<https://github.com/user-attachments/assets/ab675957-62fd-4911-89e5-cd6e3ee86d12>
+<https://github.com/user-attachments/assets/338852c1-0f6d-4ab4-ac80-d0d13324deb7>
 
 ## Contents
 
@@ -156,9 +156,6 @@ If the app does not open on Ubuntu 22.04 or later, install FUSE, which every App
 
 ## Web app
 
-> [!NOTE]<br>
-> The web app goes live at [noise.furey.dev](https://noise.furey.dev) with the first release.
-
 Open [noise.furey.dev](https://noise.furey.dev) in a browser on any device. You do not need to install anything.
 
 To add Noise to the home screen of a phone or tablet:
@@ -250,18 +247,19 @@ npm run dev
 
 ### Commands
 
-| Command              | Effect                                                                                  |
-| -------------------- | --------------------------------------------------------------------------------------- |
-| `npm run dev`        | Starts the Vite development server                                                      |
-| `npm test`           | Runs the unit tests                                                                     |
-| `npm run test:e2e`   | Builds the web app, then opens it in Electron and checks start-up, sound, and lock-down |
-| `npm run lint`       | Runs ESLint                                                                             |
-| `npm run build`      | Builds the web app into `dist`                                                          |
-| `npm start`          | Builds the web app and opens it in Electron                                             |
-| `npm run dist:mac`   | Builds the macOS `.dmg` files (any Mac, Apple chip, and Intel)                          |
-| `npm run dist:win`   | Builds the Windows installer                                                            |
-| `npm run dist:linux` | Builds the Linux AppImages (`x86_64` and `arm64`)                                       |
-| `npm run icons`      | Makes the app icons from the SVG files in `build/icon-source`                           |
+| Command              | Effect                                                                                               |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| `npm run dev`        | Starts the Vite development server                                                                   |
+| `npm test`           | Runs the unit tests                                                                                  |
+| `npm run test:e2e`   | Builds the web app, then opens it in Electron and checks start-up, sound, and lock-down              |
+| `npm run lint`       | Runs ESLint                                                                                          |
+| `npm run build`      | Builds the web app into `dist`                                                                       |
+| `npm start`          | Builds the web app and opens it in Electron                                                          |
+| `npm run dist:mac`   | Builds the macOS `.dmg` files (any Mac, Apple chip, and Intel)                                       |
+| `npm run dist:win`   | Builds the Windows installer                                                                         |
+| `npm run dist:linux` | Builds the Linux AppImages (`x86_64` and `arm64`)                                                    |
+| `./deploy.sh`        | Builds the web app and copies `dist` to the server behind [noise.furey.dev](https://noise.furey.dev) |
+| `npm run icons`      | Makes the app icons from the SVG files in `build/icon-source`                                        |
 
 The `dist:*` commands write to `release`. `npm run icons` needs `rsvg-convert`, and on a Mac it also makes the `.icns` file with `iconutil`.
 

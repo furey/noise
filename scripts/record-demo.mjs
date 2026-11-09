@@ -53,36 +53,42 @@ const fullScript = ({ glide, drag, from, to }) => [
 ]
 
 const heroScript = ({ from, to }) => [
-  ['wait', 0.6],
+  ['wait', 1.5],
   ['caption', 'Tap to play'],
-  ['wait', 0.6],
-  ['glide', 'centre', 0.35],
+  ['glide', 'centre', 0.4],
   ['tap', 'centre'],
-  ['wait', 0.8],
+  ['wait', 1.4],
   ['caption', 'Drag along the colour strip to change the noise'],
-  ['glide', `colour:${from}`, 0.35],
+  ['glide', `colour:${from}`, 0.4],
   ['press', `colour:${from}`],
-  ['drag', `colour:${to}`, 3.2],
+  ['drag', `colour:${to}`, 3.6],
   ['release'],
-  ['wait', 0.3],
+  ['wait', 0.8],
   ['caption', 'Drag up or down to change the volume'],
-  ['glide', 'volume', 0.35],
+  ['glide', 'volume', 0.4],
   ['press', 'volume'],
-  ['drag', 'volumeUp', 0.9],
-  ['wait', 0.2],
-  ['drag', 'volumeDown', 1.0],
-  ['release'],
+  ['drag', 'volumeUp', 1.1],
   ['wait', 0.3],
-  ['caption', 'Drag back to brown noise'],
-  ['glide', `colour:${to}`, 0.35],
-  ['press', `colour:${to}`],
-  ['drag', `colour:${from}`, 2.4],
+  ['drag', 'volumeDown', 1.2],
   ['release'],
+  ['wait', 0.8],
+  ['caption', 'Tap the corner square to set a sleep timer'],
+  ['glide', 'timer', 0.4],
+  ['tap', 'timer'],
   ['wait', 0.6],
+  ['tap', 'timer'],
+  ['wait', 0.6],
+  ['tap', 'timer'],
+  ['wait', 1.2],
+  ['glide', `colour:${to}`, 0.4],
+  ['press', `colour:${to}`],
+  ['drag', `colour:${from}`, 2.6],
+  ['release'],
+  ['wait', 0.8],
   ['caption', 'Double-tap to pause'],
-  ['glide', 'centre', 0.35],
+  ['glide', 'centre', 0.4],
   ['doubleTap', 'centre'],
-  ['wait', 1.8],
+  ['wait', 2.0],
 ]
 
 const desktopDevice = ({ viewport, dpr, x, y, bar, settings, script, pointer }) => {
@@ -105,7 +111,10 @@ const MOUSE = { mode: 'mouse', dot: 20, ring: 70 }
 const TOUCH = { mode: 'touch', dot: 46, ring: 96 }
 const PHONE_INSETS = { top: 47, right: 0, bottom: 34, left: 0 }
 
-const CAPTION = { size: 40, bottom: 84, fade: 0.25, colour: '#e8e8ea', font: '-apple-system, Helvetica Neue, sans-serif' }
+const CAPTION = {
+  hold: 2.2, fade: 0.35, size: 64, weight: 600, scale: 2, tint: 0.62,
+  colour: '#f2f2f4', font: '-apple-system, BlinkMacSystemFont, Helvetica Neue, sans-serif',
+}
 
 const HERO_SETTINGS = { pos: 0, volume: 0.6 }
 const HERO_SCRIPT = heroScript({ from: 0, to: 4 })
@@ -180,7 +189,7 @@ const recordShot = async ({ browser, name, shot }) => {
   const duration = frameCount / FPS
   const audio = path.join(work, 'audio.m4a')
   const { gainDb } = await renderDemoAudio({ log, start: starts[0] / 1000, duration, out: audio })
-  const captions = await renderCaptions({ browser, shot, work, captions: timelines[0].captions, duration })
+  const captions = await renderCaptions({ browser, shot, work, captions: timelines[0].captions })
   await encode({ shot, work, framePng, audio, captions, out: path.join(values.out, `demo-${name}.mp4`) })
   await poster({ shot, work, framePng, frame: Math.round(shot.poster * FPS), out: path.join(values.out, `demo-${name}.png`) })
   await fs.rm(work, { recursive: true })
@@ -241,7 +250,11 @@ const buildTimeline = ({ device, spots }) => {
     for (let i = 0; i < 2; i++) push()
   }
   const actions = {
-    caption: text => state.captions.push({ text, start: cues.length / FPS }),
+    caption: text => {
+      const start = cues.length / FPS
+      actions.wait(CAPTION.hold)
+      state.captions.push({ text, start, end: cues.length / FPS })
+    },
     wait: seconds => Array.from({ length: framesFor(seconds) }, () => push()),
     glide: (target, seconds) => move(spot(spots, target), seconds, device.pointer.mode === 'mouse' ? 'move' : null),
     tap: target => {
@@ -312,25 +325,28 @@ const layerGraph = ({ shot, inputs }) => {
   ].join(';')
 }
 
-const renderCaptions = async ({ browser, shot, work, captions, duration }) => {
+const renderCaptions = async ({ browser, shot, work, captions }) => {
   const rendered = []
   for (const [index, caption] of captions.entries()) {
     const file = path.join(work, `caption${index}.png`)
-    await renderSvg({ browser, svg: captionSvg({ shot, text: caption.text }), width: shot.width, height: shot.height, out: file })
-    rendered.push({ file, start: caption.start, end: captions[index + 1]?.start ?? duration })
+    const [width, height] = [shot.width * CAPTION.scale, shot.height * CAPTION.scale]
+    await renderSvg({ browser, svg: captionSvg({ shot, text: caption.text, width, height }), width, height, out: file })
+    rendered.push({ file, start: caption.start, end: caption.end })
   }
   return rendered
 }
 
-const captionSvg = ({ shot, text }) => `<svg xmlns="http://www.w3.org/2000/svg" width="${shot.width}" height="${shot.height}">`
-  + `<text x="${shot.width / 2}" y="${shot.height - CAPTION.bottom}" text-anchor="middle" font-family="${CAPTION.font}" `
-  + `font-size="${CAPTION.size}" font-weight="500" fill="${CAPTION.colour}">${text}</text></svg>`
+const captionSvg = ({ shot, text, width, height }) => `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" `
+  + `viewBox="0 0 ${shot.width} ${shot.height}">`
+  + `<rect width="${shot.width}" height="${shot.height}" fill="#000" fill-opacity="${CAPTION.tint}"/>`
+  + `<text x="${shot.width / 2}" y="${shot.height / 2}" text-anchor="middle" dominant-baseline="central" `
+  + `font-family="${CAPTION.font}" font-size="${CAPTION.size}" font-weight="${CAPTION.weight}" fill="${CAPTION.colour}">${text}</text></svg>`
 
 const captionGraph = ({ captions, inputs, from }) => {
   if (!captions.length) return { graph: [], out: from }
   const graph = captions.flatMap((caption, index) => {
     const fadeOut = Math.max(caption.start, caption.end - CAPTION.fade)
-    const input = `[${inputs + index}:v]format=rgba,fade=in:st=${caption.start}:d=${CAPTION.fade}:alpha=1,`
+    const input = `[${inputs + index}:v]scale=iw/${CAPTION.scale}:ih/${CAPTION.scale}:flags=lanczos,format=rgba,fade=in:st=${caption.start}:d=${CAPTION.fade}:alpha=1,`
       + `fade=out:st=${fadeOut}:d=${CAPTION.fade}:alpha=1[c${index}]`
     const into = index === 0 ? from : `[t${index}]`
     const shown = `enable='between(t,${caption.start},${caption.end})'`
