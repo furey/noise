@@ -2,6 +2,7 @@ import { COLOUR_ROW_SHADES, LAST, LIGHT_INK, colourAt, inkRgb, isDarkInk, palett
 import { COLOUR_ROWS, fillCell, isReserved, waveCol } from './grid.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
 import { createRadial, drawFlock, drawRadial, isRadialSettled, linearShare, stepRadial } from './radial.js'
+import { cellReveal, createIntro, introElapsed, isIntroDone, INTRO_STEPS } from './intro.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
 import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
@@ -11,6 +12,7 @@ const INK_STEPS = 20
 const INK_ALPHAS = [1, TIMER_BLINK_LOW, TIMER_OFF_ALPHA]
 const SELECTOR_HALF = 1
 const SELECTOR_FILL = rgba(LIGHT_INK, 1)
+const HIDE_STYLES = Array.from({ length: INTRO_STEPS + 1 }, (_, step) => rgba([0, 0, 0], 1 - step / INTRO_STEPS))
 
 export const createSynth = ({ spec, fx }) => {
   const view = {
@@ -28,6 +30,8 @@ export const createSynth = ({ spec, fx }) => {
     rowFills: [],
     gradients: new Map(),
     inks: buildInks(),
+    intro: null,
+    introDone: false,
   }
   return {
     resize: grid => resize(view, grid),
@@ -43,6 +47,9 @@ const resize = (view, grid) => {
   view.grid = grid
   view.rowFills = buildRowFills(grid)
   view.gradients.clear()
+  if (!view.introDone && view.intro?.delays.length !== grid.cols * grid.rows) {
+    view.intro = { ...createIntro({ cells: grid.cols * grid.rows }), start: view.intro?.start ?? null }
+  }
 }
 
 const draw = (view, frame) => {
@@ -72,7 +79,8 @@ const draw = (view, frame) => {
   drawWaveDot({ view, frame, palette })
   const pixelCount = linear ? drawPixels({ view, frame, palette, size }) : 0
   if (!linear) hidePixels(view)
-  return !isRadialSettled(radial) || (radial.morph > 0 && radial.morph < 1) || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
+  const introRunning = maskIntro(view, frame)
+  return introRunning || !isRadialSettled(radial) || (radial.morph > 0 && radial.morph < 1) || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
 }
 
 const isLinearEmpty = ({ spectrum, chips }) => spectrum.levels.every(level => level < 0.02) && chips.every(chip => chip.y <= 0)
@@ -149,6 +157,27 @@ const drawTimer = ({ view, frame, palette, size }) => {
   const { g, grid } = view
   g.fillStyle = size || frame.playing ? inkStyle(view, timerAlpha(frame)) : palette.rest
   for (let col = grid.timerCol - Math.max(1, size) + 1; col <= grid.timerCol; col++) fillCell(g, grid, col, grid.timerRow)
+}
+
+const maskIntro = (view, frame) => {
+  if (view.introDone) return false
+  const { g, grid, intro } = view
+  const elapsed = introElapsed(intro, frame.now)
+  if (frame.reducedMotion || isIntroDone(elapsed)) {
+    Object.assign(view, { intro: null, introDone: true })
+    return false
+  }
+  g.globalCompositeOperation = 'destination-out'
+  for (let row = 0; row < grid.rows; row++) {
+    for (let col = 0; col < grid.cols; col++) {
+      const step = cellReveal(intro.delays[row * grid.cols + col], elapsed) * INTRO_STEPS
+      if (step === INTRO_STEPS) continue
+      g.fillStyle = HIDE_STYLES[step]
+      fillCell(g, grid, col, row)
+    }
+  }
+  g.globalCompositeOperation = 'source-over'
+  return true
 }
 
 const hidePixels = view => {
