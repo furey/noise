@@ -11,7 +11,7 @@ const ARROWS = {
 
 export const bindControls = ({ app, doc, layout }) => {
   const surface = doc.getElementById('surface')
-  const controls = { app, doc, layout, surface, taps: createTapTracker(), dragVolume: 0 }
+  const controls = { app, doc, layout, surface, taps: createTapTracker(), dragVolume: 0, playingAtPress: false }
   const unbinders = [
     bindSurface(controls),
     listen(doc.getElementById('play'), 'click', () => app.togglePlay()),
@@ -37,6 +37,7 @@ const bindSurface = controls => bindGestures({
 
 const onPress = (controls, { zone, x }) => {
   controls.dragVolume = controls.app.state.volume
+  controls.playingAtPress = controls.app.state.playing
   if (zone === 'colour') beginColourDrag(controls, x)
 }
 
@@ -49,8 +50,8 @@ const onRelease = (controls, { zone }) => {
   if (zone === 'colour') endColourDrag(controls)
 }
 
-const onTap = ({ app, taps }, tap) => {
-  if (!app.state.playing) {
+const onTap = ({ app, taps, playingAtPress }, tap) => {
+  if (!playingAtPress) {
     resetTaps(taps)
     return app.setPlaying(true)
   }

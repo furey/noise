@@ -21,7 +21,7 @@ export const bindGestures = ({ surface, zoneAt, onPress, onDrag, onRelease, onTa
     const kind = classifyRelease({ moved: press.moved, elapsed: e.timeStamp - press.t, cancelled: e.type === 'pointercancel' })
     press.id = null
     onRelease(press)
-    if (kind === 'tap' && press.zone === 'synth') onTap({ x: e.clientX, y: e.clientY, t: e.timeStamp })
+    if (kind === 'tap') onTap({ zone: press.zone, x: e.clientX, y: e.clientY, t: e.timeStamp })
   }
   const listeners = { pointerdown: down, pointermove: move, pointerup: end, pointercancel: end }
   Object.entries(listeners).forEach(([type, listener]) => surface.addEventListener(type, listener))
