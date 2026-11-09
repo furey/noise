@@ -83,6 +83,8 @@ export const drawFlock = ({ g, grid, radial, chips, size, ink, playing }) => {
   }
 }
 
+export const isRadialSettled = radial => radial.morph === 0 || (isRadialEmpty(radial) && radial.radii.every(radius => radius < EMPTY_PEAK))
+
 const isRadialEmpty = radial => radial.particles.length === 0 && radial.peaks.every(peak => peak < EMPTY_PEAK)
 
 const resetTips = (radial, tips) => {

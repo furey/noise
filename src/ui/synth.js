@@ -1,7 +1,7 @@
 import { COLOUR_ROW_SHADES, LAST, LIGHT_INK, colourAt, inkRgb, isDarkInk, paletteFor, rgba, shadeRgb } from './colours.js'
 import { COLOUR_ROWS, fillCell, isReserved, waveCol } from './grid.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
-import { createRadial, drawFlock, drawRadial, linearShare, stepRadial } from './radial.js'
+import { createRadial, drawFlock, drawRadial, isRadialSettled, linearShare, stepRadial } from './radial.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
 import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
@@ -48,6 +48,7 @@ const resize = (view, grid) => {
 const draw = (view, frame) => {
   const { grid, chips } = view
   if (!grid) return false
+  const linearEmpty = isLinearEmpty(view)
   const levelsActive = updateLevels(view, frame)
   if (view.wasPlaying !== frame.playing) {
     view.wasPlaying = frame.playing
@@ -58,7 +59,7 @@ const draw = (view, frame) => {
   const palette = paletteFor(frame)
   const size = timerSize(frame.timer)
   const { radial } = view
-  stepRadial(radial, { levels: view.spectrum.levels, dt: frame.dt, volume: frame.volume, wave: frame.wave, playing: frame.playing, linearEmpty: isLinearEmpty(view), reducedMotion: frame.reducedMotion, t: frame.now / 1000 })
+  stepRadial(radial, { levels: view.spectrum.levels, dt: frame.dt, volume: frame.volume, wave: frame.wave, playing: frame.playing, linearEmpty, reducedMotion: frame.reducedMotion, t: frame.now / 1000 })
   const linear = radial.morph === 0
   const ink = inkStyle(view, 1)
   view.g.clearRect(0, 0, view.spec.width, view.spec.height)
@@ -71,7 +72,7 @@ const draw = (view, frame) => {
   drawWaveDot({ view, frame, palette })
   const pixelCount = linear ? drawPixels({ view, frame, palette, size }) : 0
   if (!linear) hidePixels(view)
-  return (radial.morph > 0 && radial.morph < 1) || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
+  return !isRadialSettled(radial) || (radial.morph > 0 && radial.morph < 1) || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
 }
 
 const isLinearEmpty = ({ spectrum, chips }) => spectrum.levels.every(level => level < 0.02) && chips.every(chip => chip.y <= 0)
