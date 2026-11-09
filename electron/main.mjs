@@ -5,6 +5,7 @@ import { createInstallAccess, grantSandboxReadAccess } from './install-access.mj
 import { MIN_SIZE, createWindowState } from './window-state.mjs'
 
 const BACKGROUND = '#050505'
+const ALWAYS_ON_TOP_ID = 'always-on-top'
 const SHOW_FALLBACK_MS = 5000
 const PAGE_URL = `${APP_ORIGIN}/index.html`
 const BLOCKED_URLS = ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*', 'file://*/*']
@@ -47,9 +48,10 @@ const start = () => {
 }
 
 const createWindow = () => {
-  const { maximized, ...bounds } = state.windowState.load()
+  const { maximized, alwaysOnTop, ...bounds } = state.windowState.load()
   const window = new BrowserWindow({
     ...bounds,
+    alwaysOnTop,
     minWidth: MIN_SIZE.width,
     minHeight: MIN_SIZE.height,
     title: 'Noise',
@@ -66,6 +68,7 @@ const createWindow = () => {
     },
   })
   if (!isMac) window.setMenuBarVisibility(false)
+  Menu.getApplicationMenu().getMenuItemById(ALWAYS_ON_TOP_ID).checked = alwaysOnTop
   const showFallback = setTimeout(() => revealWindow({ window, maximized }), SHOW_FALLBACK_MS)
   window.once('ready-to-show', () => {
     clearTimeout(showFallback)
@@ -96,7 +99,13 @@ const repairInstallAccess = () => {
 
 const rememberBounds = window => {
   const { x, y, width, height } = window.getNormalBounds()
-  state.windowState.save({ x, y, width, height, maximized: window.isMaximized() })
+  state.windowState.save({ x, y, width, height, maximized: window.isMaximized(), alwaysOnTop: window.isAlwaysOnTop() })
+}
+
+const setAlwaysOnTop = ({ checked }) => {
+  if (!state.window || state.window.isDestroyed()) return
+  state.window.setAlwaysOnTop(checked)
+  rememberBounds(state.window)
 }
 
 const focusWindow = () => {
@@ -130,7 +139,11 @@ const lockDownSession = target => {
 const buildMenu = () => Menu.buildFromTemplate([
   ...(isMac ? [{ role: 'appMenu' }] : [{ role: 'fileMenu' }]),
   { role: 'editMenu' },
-  { label: 'View', submenu: [{ role: 'togglefullscreen' }] },
+  { label: 'View', submenu: [
+    { id: ALWAYS_ON_TOP_ID, label: 'Always on Top', type: 'checkbox', click: setAlwaysOnTop },
+    { type: 'separator' },
+    { role: 'togglefullscreen' },
+  ] },
   { role: 'windowMenu' },
 ])
 

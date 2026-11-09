@@ -233,7 +233,9 @@ Screen readers get a **Play** button, a **Noise colour** slider, a **Volume** sl
 
 ### Desktop window
 
-The window opens at `960` × `600` and you can make it as small as `280` × `220`, small enough for a corner of the screen. The grid of blocks changes to fit each size. The app remembers the size and position of the window.
+The window opens at `960` × `600` and you can make it as small as `280` × `220`, small enough for a corner of the screen. The grid of blocks changes to fit each size.
+
+To keep the window above other windows, choose **View → Always on Top**. On Windows and Linux, press `Alt` to show the menu bar. The app remembers the size and position of the window, and the Always on Top setting.
 
 ### Background play
 
@@ -243,7 +245,7 @@ The sound keeps playing in the background where the browser allows it. The app a
 
 - **No network**: after the page loads, Noise makes no network requests. The desktop app blocks all network requests.
 - **No accounts**: there is nothing to sign up for and no tracking.
-- **Local storage**: the app keeps only your colour and volume, in the browser's `localStorage`. The desktop app also keeps the size and position of its window.
+- **Local storage**: the app keeps only your colour and volume, in the browser's `localStorage`. The desktop app also keeps the size and position of its window, and the Always on Top setting.
 
 ## Development
 

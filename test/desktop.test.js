@@ -72,21 +72,28 @@ test('served files carry a MIME type, and missing files are 404', async () => {
 })
 
 test('window state falls back to defaults for missing or bad data', () => {
-  const defaults = { ...DEFAULT_BOUNDS, maximized: false }
+  const defaults = { ...DEFAULT_BOUNDS, maximized: false, alwaysOnTop: false }
   assert.deepEqual(usableState({ saved: null, displays: [display] }), defaults)
   assert.deepEqual(usableState({ saved: [1, 2], displays: [display] }), defaults)
   assert.deepEqual(usableState({ saved: { width: 10, height: 'x' }, displays: [display] }), defaults)
 })
 
 test('window state keeps a position only when it is on a display', () => {
-  const saved = { x: 100, y: 80, width: 900, height: 600, maximized: true }
+  const saved = { x: 100, y: 80, width: 900, height: 600, maximized: true, alwaysOnTop: false }
   assert.deepEqual(usableState({ saved, displays: [display] }), saved)
-  assert.deepEqual(usableState({ saved: { ...saved, x: 5000 }, displays: [display] }), { width: 900, height: 600, maximized: true })
+  assert.deepEqual(usableState({ saved: { ...saved, x: 5000 }, displays: [display] }), { width: 900, height: 600, maximized: true, alwaysOnTop: false })
   assert.equal(usableState({ saved: { width: MIN_SIZE.width, height: MIN_SIZE.height }, displays: [] }).width, MIN_SIZE.width)
 })
 
+test('window state keeps always on top only when it was saved as true', () => {
+  const saved = { x: 100, y: 80, width: 900, height: 600 }
+  assert.equal(usableState({ saved: { ...saved, alwaysOnTop: true }, displays: [display] }).alwaysOnTop, true)
+  assert.equal(usableState({ saved: { ...saved, alwaysOnTop: 'yes' }, displays: [display] }).alwaysOnTop, false)
+  assert.equal(usableState({ saved, displays: [display] }).alwaysOnTop, false)
+})
+
 test('window state drops a position whose title bar is off every display', () => {
-  const size = { width: 900, height: 600, maximized: false }
+  const size = { width: 900, height: 600, maximized: false, alwaysOnTop: false }
   assert.deepEqual(usableState({ saved: { ...size, x: 100, y: -300 }, displays: [display] }), size)
   assert.deepEqual(usableState({ saved: { ...size, x: 1900, y: 100 }, displays: [display] }), size)
   assert.deepEqual(usableState({ saved: { ...size, x: 100, y: 1070 }, displays: [display] }), size)
@@ -95,8 +102,8 @@ test('window state drops a position whose title bar is off every display', () =>
 
 test('window state shrinks a window larger than its display', () => {
   const laptop = { x: 0, y: 0, width: 1440, height: 875 }
-  assert.deepEqual(usableState({ saved: { x: 0, y: 0, width: 3840, height: 2160 }, displays: [laptop] }), { x: 0, y: 0, width: 1440, height: 875, maximized: false })
-  assert.deepEqual(usableState({ saved: { x: 9000, y: 0, width: 3840, height: 2160 }, displays: [laptop, display] }), { width: 1920, height: 1080, maximized: false })
+  assert.deepEqual(usableState({ saved: { x: 0, y: 0, width: 3840, height: 2160 }, displays: [laptop] }), { x: 0, y: 0, width: 1440, height: 875, maximized: false, alwaysOnTop: false })
+  assert.deepEqual(usableState({ saved: { x: 9000, y: 0, width: 3840, height: 2160 }, displays: [laptop, display] }), { width: 1920, height: 1080, maximized: false, alwaysOnTop: false })
 })
 
 test('install access repairs once per Electron version, only after a start that never showed the window', () => {
@@ -123,8 +130,8 @@ test('window state saves atomically and survives a corrupt file', () => {
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'noise-state-'))
   const windowState = createWindowState({ folder, displays: () => [display] })
   fs.writeFileSync(path.join(folder, 'window-state.json'), '{not json')
-  assert.deepEqual(windowState.load(), { ...DEFAULT_BOUNDS, maximized: false })
-  assert.equal(windowState.save({ x: 10, y: 20, width: 800, height: 600, maximized: false }), true)
-  assert.deepEqual(windowState.load(), { x: 10, y: 20, width: 800, height: 600, maximized: false })
+  assert.deepEqual(windowState.load(), { ...DEFAULT_BOUNDS, maximized: false, alwaysOnTop: false })
+  assert.equal(windowState.save({ x: 10, y: 20, width: 800, height: 600, maximized: false, alwaysOnTop: true }), true)
+  assert.deepEqual(windowState.load(), { x: 10, y: 20, width: 800, height: 600, maximized: false, alwaysOnTop: true })
   assert.deepEqual(fs.readdirSync(folder), ['window-state.json'])
 })

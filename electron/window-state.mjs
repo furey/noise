@@ -16,15 +16,16 @@ export const createWindowState = ({ folder, displays }) => {
 }
 
 export const usableState = ({ saved, displays }) => {
-  if (!isPlainObject(saved)) return { ...DEFAULT_BOUNDS, maximized: false }
+  if (!isPlainObject(saved)) return { ...DEFAULT_BOUNDS, maximized: false, alwaysOnTop: false }
   const width = sizeOr(saved.width, { min: MIN_SIZE.width, fallback: DEFAULT_BOUNDS.width })
   const height = sizeOr(saved.height, { min: MIN_SIZE.height, fallback: DEFAULT_BOUNDS.height })
   const maximized = saved.maximized === true
+  const alwaysOnTop = saved.alwaysOnTop === true
   const placed = Number.isInteger(saved.x) && Number.isInteger(saved.y)
   const bounds = { x: saved.x, y: saved.y, width, height }
   const area = placed && displays.find(display => showsTitleBar(bounds, display))
-  if (area) return { ...bounds, ...fitSize(bounds, area), maximized }
-  return { ...fitSize(bounds, largestOf(displays)), maximized }
+  if (area) return { ...bounds, ...fitSize(bounds, area), maximized, alwaysOnTop }
+  return { ...fitSize(bounds, largestOf(displays)), maximized, alwaysOnTop }
 }
 
 const sizeOr = (value, { min, fallback }) =>

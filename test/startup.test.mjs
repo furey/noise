@@ -104,6 +104,18 @@ test('a second start focuses the open window and quits', { timeout: TEST_TIMEOUT
   })
 })
 
+test('the Always on Top menu item pins the window and survives a restart', { timeout: TEST_TIMEOUT_MS }, async () => {
+  const userData = await withApp(async ({ app, userData }) => {
+    await app.evaluate(({ Menu }) => Menu.getApplicationMenu().getMenuItemById('always-on-top').click())
+    assert.equal(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isAlwaysOnTop()), true)
+    return userData
+  })
+  await withApp(async ({ app }) => {
+    assert.equal(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isAlwaysOnTop()), true)
+    assert.equal(await app.evaluate(({ Menu }) => Menu.getApplicationMenu().getMenuItemById('always-on-top').checked), true)
+  }, userData)
+})
+
 const INIT_SCRIPT = () => {
   const noiseTest = { csp: [], analysers: [], contexts: new Set(), elements: new Set() }
   window.__noiseTest = noiseTest
@@ -128,14 +140,14 @@ const INIT_SCRIPT = () => {
   })
 }
 
-const withApp = async run => {
-  const userData = await fs.mkdtemp(path.join(tmpRoot, 'profile-'))
+const withApp = async (run, existingUserData) => {
+  const userData = existingUserData ?? await fs.mkdtemp(path.join(tmpRoot, 'profile-'))
   const app = await launch(userData)
   try {
     const page = await app.firstWindow()
     await waitForApp({ app, what: 'a visible window', check: ({ BrowserWindow }) => BrowserWindow.getAllWindows().some(window => window.isVisible()) })
     const watch = await watchReload({ app, page })
-    await run({ app, page, watch, userData })
+    return await run({ app, page, watch, userData })
   } finally {
     await closeApp(app)
   }
