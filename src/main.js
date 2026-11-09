@@ -11,6 +11,7 @@ import { createView } from './ui/view.js'
 const MAX_DPR = 2
 const LATE_INSETS_MS = 500
 const MAX_BACKING_PIXELS = 3840 * 2160
+const MAX_HOME_BAR_GAP_PX = 60
 
 const start = () => {
   markDesktop()
@@ -25,6 +26,7 @@ const start = () => {
     draw: (dt, now) => synth.draw(fillFrame({ frame, dt, now, state: app.state, engine, reducedMotion })),
   })
   const relayout = () => {
+    coverHomeBarGap()
     layout.grid = measureLayout()
     synth.resize(layout.grid)
     view.placeTimer(layout.grid)
@@ -93,6 +95,16 @@ const watchPixelRatio = onChange => {
     onChange()
     watchPixelRatio(onChange)
   }, { once: true })
+}
+
+const coverHomeBarGap = () => document.documentElement.style.setProperty('--home-bar-gap', `${homeBarGap()}px`)
+
+const homeBarGap = () => {
+  if (!navigator.standalone) return 0
+  const landscape = innerWidth > innerHeight
+  const screenHeight = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height)
+  const gap = screenHeight - innerHeight
+  return gap > 0 && gap <= MAX_HOME_BAR_GAP_PX ? gap : 0
 }
 
 const readInsets = () => {
