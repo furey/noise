@@ -39,6 +39,16 @@ jobs:
       - name: Install
         run: npm ci --no-fund --no-audit
 
+      - name: Download Electron (retries GitHub 504s)
+        shell: bash
+        run: |
+          for attempt in 1 2 3 4 5; do
+            node node_modules/electron/install.js && exit 0
+            echo "Electron download failed (attempt $attempt of 5). Waiting 30 seconds."
+            sleep 30
+          done
+          exit 1
+
       - name: Allow the Electron sandbox on Linux
         if: runner.os == 'Linux'
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
@@ -61,7 +71,13 @@ jobs:
         env:
           PLATFORM: ${{ matrix.platform }}
         shell: bash
-        run: npm run dist -- "--$PLATFORM"
+        run: |
+          for attempt in 1 2 3; do
+            npm run dist -- "--$PLATFORM" && exit 0
+            echo "Build failed (attempt $attempt of 3). Waiting 30 seconds."
+            sleep 30
+          done
+          exit 1
 
       - name: Add an inherited orphaned package SID to the per-user Programs folder (electron/electron#51761)
         if: runner.os == 'Windows'
