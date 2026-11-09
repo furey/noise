@@ -57,3 +57,12 @@ test('brown has more low end than violet', () => {
   }
   assert.ok(lowShare(render({ position: 0 }).left) > 5 * lowShare(render({ position: 4 }).left))
 })
+
+test('processing reuses the same weight buffers', () => {
+  const processor = loadProcessor()
+  const buffers = new Set([processor.weights, processor.target])
+  const output = [[new Float32Array(128), new Float32Array(128)]]
+  for (let b = 0; b < 50; b++) processor.process([], output, { position: new Float32Array([b % 5]) })
+  assert.ok(buffers.has(processor.weights) && buffers.has(processor.target))
+  assert.notEqual(processor.weights, processor.target)
+})

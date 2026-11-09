@@ -52,12 +52,12 @@ const calibrate = () => {
   return { gains, correlations }
 }
 
-const mixWeights = (position, correlations) => {
+const mixWeights = (position, correlations, weights) => {
   const clamped = Math.max(0, Math.min(COLOUR_COUNT - 1, position))
   const lo = Math.floor(clamped)
   const hi = Math.min(lo + 1, COLOUR_COUNT - 1)
   const t = clamped - lo
-  const weights = new Float64Array(COLOUR_COUNT)
+  weights.fill(0)
   const a = Math.cos(t * Math.PI / 2)
   const b = Math.sin(t * Math.PI / 2)
   const norm = lo === hi ? 1 : 1 / Math.sqrt(a * a + b * b + 2 * a * b * correlations[lo])
@@ -76,12 +76,13 @@ class NoiseProcessor extends AudioWorkletProcessor {
     Object.assign(this, calibrate())
     this.voices = [createVoice(0x12345678), createVoice(0x87654321)]
     this.colours = new Float64Array(COLOUR_COUNT)
-    this.weights = mixWeights(0, this.correlations)
+    this.weights = mixWeights(0, this.correlations, new Float64Array(COLOUR_COUNT))
+    this.target = new Float64Array(COLOUR_COUNT)
   }
 
   process(_inputs, outputs, parameters) {
     const output = outputs[0]
-    const target = mixWeights(parameters.position[0], this.correlations)
+    const target = mixWeights(parameters.position[0], this.correlations, this.target)
     const frames = output[0].length
     for (let ch = 0; ch < output.length; ch++) {
       const voice = this.voices[ch % this.voices.length]
@@ -97,6 +98,7 @@ class NoiseProcessor extends AudioWorkletProcessor {
         data[i] = sample
       }
     }
+    this.target = this.weights
     this.weights = target
     return true
   }
