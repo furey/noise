@@ -59,7 +59,7 @@ const draw = (view, frame) => {
   drawBars({ view, palette, size, playing: frame.playing })
   drawChips(view, size)
   drawColourRows(view, frame.pos)
-  drawTimer({ view, frame, size })
+  drawTimer({ view, frame, palette, size })
   const pixelCount = drawPixels({ view, frame, palette, size })
   return frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
 }
@@ -126,9 +126,9 @@ const drawSelector = ({ g, grid, pos }) => {
   }
 }
 
-const drawTimer = ({ view, frame, size }) => {
+const drawTimer = ({ view, frame, palette, size }) => {
   const { g, grid } = view
-  g.fillStyle = inkStyle(view, timerAlpha(frame))
+  g.fillStyle = size || frame.playing ? inkStyle(view, timerAlpha(frame)) : palette.rest
   const cells = Math.max(1, size)
   for (let row = grid.timerRow; row < grid.timerRow + cells; row++) {
     for (let col = grid.timerCol - cells + 1; col <= grid.timerCol; col++) fillCell(g, grid, col, row)
