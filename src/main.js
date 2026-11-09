@@ -16,10 +16,10 @@ const start = () => {
   const engine = createEngine()
   const app = createApp({ engine, settings: loadSettings(), persist: saveSettings })
   const view = createView(document)
-  const synth = createSynth({ spec: $('spec'), fx: $('fx') })
+  const synth = createSynth({ spec: $('spec'), fx: $('fx'), burstKind: new URLSearchParams(location.search).get('burst') ?? 'breaker' })
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
   const layout = { grid: null }
-  const frame = { dt: 0, now: 0, playing: false, pos: 0, volume: 0, timer: null, analyser: null, sampleRate: 48000, reducedMotion: false }
+  const frame = { dt: 0, now: 0, playing: false, pos: 0, volume: 0, timer: null, wave: false, analyser: null, sampleRate: 48000, reducedMotion: false }
   const loop = createFrameLoop({
     draw: (dt, now) => synth.draw(fillFrame({ frame, dt, now, state: app.state, engine, reducedMotion })),
   })
@@ -55,6 +55,7 @@ const fillFrame = ({ frame, dt, now, state, engine, reducedMotion }) => {
   frame.pos = state.pos
   frame.volume = state.volume
   frame.timer = state.timer
+  frame.wave = state.wave
   frame.analyser = engine.analyser()
   frame.sampleRate = engine.sampleRate()
   frame.reducedMotion = reducedMotion.matches
@@ -65,7 +66,9 @@ const measureLayout = () => {
   const spec = $('spec')
   const width = spec.clientWidth || innerWidth
   const height = spec.clientHeight || innerHeight
-  return measureGrid({ width, height, dpr: backingDpr(width, height), insets: readInsets() })
+  const param = new URLSearchParams(location.search).get('frame')
+  const framed = param === null ? false : Number(param) || true
+  return measureGrid({ width, height, dpr: backingDpr(width, height), insets: readInsets(), framed })
 }
 
 const backingDpr = (width, height) =>

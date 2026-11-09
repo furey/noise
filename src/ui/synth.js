@@ -1,5 +1,6 @@
 import { COLOUR_ROW_SHADES, LAST, LIGHT_INK, colourAt, inkRgb, isDarkInk, paletteFor, rgba, shadeRgb } from './colours.js'
-import { COLOUR_ROWS, fillCell, inTimer } from './grid.js'
+import { COLOUR_ROWS, fillCell, fillScreenCell, inTimer } from './grid.js'
+import { drawBurst, isBurstLive } from './burst.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
@@ -10,10 +11,14 @@ const INK_STEPS = 20
 const INK_ALPHAS = [1, TIMER_BLINK_LOW, TIMER_OFF_ALPHA]
 const SELECTOR_HALF = 1
 const SELECTOR_FILL = rgba(LIGHT_INK, 1)
+const FRAME_FILL = '#050505'
+const FRAME_CELL = 'rgba(255,255,255,.04)'
 
-export const createSynth = ({ spec, fx }) => {
+export const createSynth = ({ spec, fx, burstKind = 'breaker' }) => {
   const view = {
-    spec, fx,
+    spec, fx, burstKind,
+    burst: null,
+    wasWave: false,
     g: spec.getContext('2d'),
     fg: fx.getContext('2d'),
     grid: null,
@@ -60,8 +65,10 @@ const draw = (view, frame) => {
   drawChips(view, size)
   drawColourRows(view, frame.pos)
   drawTimer({ view, frame, palette, size })
+  drawFrame(view)
   const pixelCount = drawPixels({ view, frame, palette, size })
-  return frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
+  const bursting = stepBurst(view, frame)
+  return bursting || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
 }
 
 const updateLevels = (view, { analyser, playing, sampleRate, volume }) => {
@@ -135,6 +142,34 @@ const drawTimer = ({ view, frame, palette, size }) => {
   }
 }
 
+const stepBurst = (view, frame) => {
+  if (frame.wave && !view.wasWave) view.burst = { kind: view.burstKind, start: frame.now }
+  view.wasWave = frame.wave
+  if (!isBurstLive(view.burst, frame.now)) return false
+  drawBurst({ g: view.fg, grid: view.grid, burst: view.burst, now: frame.now, pos: frame.pos })
+  return true
+}
+
+const drawFrame = ({ g, grid }) => {
+  const { frame, dpr, width, height, ox, oy, cols, rows, cellW, stepY } = grid
+  if (!frame.top && !frame.left) return
+  const inner = { x: ox * dpr, y: oy * dpr, w: cols * cellW * dpr, h: rows * stepY * dpr }
+  g.fillStyle = FRAME_FILL
+  g.fillRect(0, 0, width * dpr, inner.y)
+  g.fillRect(0, inner.y + inner.h, width * dpr, height * dpr - inner.y - inner.h)
+  g.fillRect(0, inner.y, inner.x, inner.h)
+  g.fillRect(inner.x + inner.w, inner.y, width * dpr - inner.x - inner.w, inner.h)
+  g.fillStyle = FRAME_CELL
+  const totalCols = cols + frame.left + frame.right
+  const totalRows = rows + frame.top + frame.bottom
+  for (let row = 0; row < totalRows; row++) {
+    for (let col = 0; col < totalCols; col++) {
+      const inside = col >= frame.left && col < frame.left + cols && row >= frame.top && row < frame.top + rows
+      if (!inside) fillScreenCell(g, grid, col, row)
+    }
+  }
+}
+
 const drawPixels = ({ view, frame, palette, size }) => {
   const { fx, fg, grid, pixels } = view
   if (frame.playing && !frame.reducedMotion) {
@@ -143,7 +178,7 @@ const drawPixels = ({ view, frame, palette, size }) => {
   const count = stepPixels({ pixels, dt: frame.dt })
   fg.clearRect(0, 0, fx.width, fx.height)
   for (const p of pixels.pool) {
-    if (!p.active || inTimer(grid, size, p.col, p.row)) continue
+    if (!p.active || p.row < 0 || inTimer(grid, size, p.col, p.row)) continue
     fg.globalAlpha = pixelAlpha(p)
     fg.fillStyle = palette[p.tone]
     fillCell(fg, grid, p.col, p.row)
@@ -156,7 +191,7 @@ const gradientFor = (view, palette) => {
   const cached = view.gradients.get(palette)
   if (cached) return cached
   const { g, grid } = view
-  const gradient = g.createLinearGradient(0, grid.synthRows * grid.stepY * grid.dpr, 0, 0)
+  const gradient = g.createLinearGradient(0, (grid.oy + grid.synthRows * grid.stepY) * grid.dpr, 0, grid.oy * grid.dpr)
   gradient.addColorStop(0, palette.low)
   gradient.addColorStop(0.55, palette.mid)
   gradient.addColorStop(1, palette.high)

@@ -12,7 +12,7 @@ export const bindGestures = ({ surface, zoneAt, onPress, onDrag, onRelease, onTa
   const move = e => {
     if (press.id !== e.pointerId) return e.pointerType === 'mouse' && onHover(zoneAt(e.clientY))
     press.moved ||= hasMoved(press, e.clientX, e.clientY)
-    if (press.moved) onDrag({ zone: press.zone, x: e.clientX, dy: e.clientY - press.y })
+    if (press.moved) onDrag({ zone: press.zone, x: e.clientX, dy: e.clientY - press.y, t: e.timeStamp })
   }
   const end = e => {
     if (press.id !== e.pointerId) return
@@ -26,16 +26,23 @@ export const bindGestures = ({ surface, zoneAt, onPress, onDrag, onRelease, onTa
   return () => Object.entries(listeners).forEach(([type, listener]) => surface.removeEventListener(type, listener))
 }
 
-export const KNOCKS = 4
-export const KNOCK_GAP_MS = 400
+export const SWEEP_LEGS = 4
+export const SWEEP_LEG_MS = 3000
+export const SWEEP_EDGE = 0.25
 
-export const createKnocks = () => ({ count: 0, t: -Infinity })
+export const createSweep = () => ({ legs: 0, end: null, t: 0 })
 
-export const registerKnock = (knocks, t) => {
-  knocks.count = t - knocks.t < KNOCK_GAP_MS ? knocks.count + 1 : 1
-  knocks.t = t
-  if (knocks.count < KNOCKS) return false
-  Object.assign(knocks, createKnocks())
+export const registerSweep = (sweep, { pos, last, t }) => {
+  const end = pos <= SWEEP_EDGE ? 'brown' : pos >= last - SWEEP_EDGE ? 'violet' : null
+  if (!end || end === sweep.end) return false
+  const fresh = sweep.end === null || t - sweep.t > SWEEP_LEG_MS
+  if (fresh) {
+    Object.assign(sweep, { legs: 0, end: end === 'brown' ? 'brown' : null, t })
+    return false
+  }
+  Object.assign(sweep, { legs: sweep.legs + 1, end, t })
+  if (sweep.legs < SWEEP_LEGS) return false
+  Object.assign(sweep, createSweep())
   return true
 }
 
