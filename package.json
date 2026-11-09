@@ -12,7 +12,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test test/*.test.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "icons": "node scripts/make-icons.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
