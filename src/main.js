@@ -9,6 +9,7 @@ import { createSynth } from './ui/synth.js'
 import { createView } from './ui/view.js'
 
 const MAX_DPR = 2
+const MAX_BACKING_PIXELS = 3840 * 2160
 
 const start = () => {
   markDesktop()
@@ -29,8 +30,10 @@ const start = () => {
     loop.wake()
   }
   const syncPlayback = bindMediaSession({ play: () => app.setPlaying(true), pause: () => app.setPlaying(false) })
+  const scheduleRelayout = oncePerFrame(relayout)
   relayout()
-  addEventListener('resize', relayout)
+  addEventListener('resize', scheduleRelayout)
+  watchPixelRatio(scheduleRelayout)
   addEventListener('pagehide', () => app.halt())
   bindControls({ app, doc: document, layout })
   app.subscribe(state => {
@@ -56,12 +59,30 @@ const fillFrame = ({ frame, dt, now, state, engine, reducedMotion }) => {
 
 const measureLayout = () => {
   const spec = $('spec')
-  return measureGrid({
-    width: spec.clientWidth || innerWidth,
-    height: spec.clientHeight || innerHeight,
-    dpr: Math.min(MAX_DPR, devicePixelRatio || 1),
-    insets: readInsets(),
-  })
+  const width = spec.clientWidth || innerWidth
+  const height = spec.clientHeight || innerHeight
+  return measureGrid({ width, height, dpr: backingDpr(width, height), insets: readInsets() })
+}
+
+const backingDpr = (width, height) =>
+  Math.min(MAX_DPR, devicePixelRatio || 1, Math.sqrt(MAX_BACKING_PIXELS / Math.max(1, width * height)))
+
+const oncePerFrame = run => {
+  let pending = 0
+  return () => {
+    pending ||= requestAnimationFrame(() => {
+      pending = 0
+      run()
+    })
+  }
+}
+
+const watchPixelRatio = onChange => {
+  const query = matchMedia(`(resolution: ${devicePixelRatio}dppx)`)
+  query.addEventListener('change', () => {
+    onChange()
+    watchPixelRatio(onChange)
+  }, { once: true })
 }
 
 const readInsets = () => {

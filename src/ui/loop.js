@@ -1,7 +1,8 @@
 const MAX_DT_S = 0.05
 
 export const createFrameLoop = ({ draw, doc = document }) => {
-  const loop = { draw, doc, id: 0, last: 0 }
+  const loop = { draw, doc, id: 0, last: 0, tick: null }
+  loop.tick = now => frame(loop, now)
   const onVisibility = () => doc.hidden ? sleep(loop) : wake(loop)
   doc.addEventListener('visibilitychange', onVisibility)
   return {
@@ -25,7 +26,7 @@ const sleep = loop => {
 }
 
 const request = loop => {
-  loop.id = requestAnimationFrame(now => frame(loop, now))
+  loop.id = requestAnimationFrame(loop.tick)
 }
 
 const frame = (loop, now) => {
