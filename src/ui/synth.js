@@ -59,7 +59,7 @@ const draw = (view, frame) => {
   const levelsActive = updateLevels(view, frame)
   if (view.wasPlaying !== frame.playing) {
     view.wasPlaying = frame.playing
-    reassignChips({ chips, cols: grid.cols, playing: frame.playing })
+    reassignChips({ chips, cols: grid.cols, playing: frame.playing, levels: view.spectrum.levels })
   }
   stepChips({ chips, levels: view.spectrum.levels, dt: frame.dt, segments: grid.synthRows, reducedMotion: frame.reducedMotion })
   const tintSettled = stepTint(view, frame)

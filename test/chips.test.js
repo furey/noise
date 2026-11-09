@@ -71,3 +71,18 @@ test('reduced motion clears debris on the next step', () => {
   stepChips({ chips, levels: FLAT, dt: DT, segments: SEGMENTS, reducedMotion: true })
   assert.equal(chips.length, 0)
 })
+
+test('playing again soon after a pause starts each cap where its falling chip or bar is', () => {
+  const chips = []
+  reassignChips({ chips, cols: COLS, playing: true })
+  run({ chips, levels: LOUD, seconds: 1 })
+  reassignChips({ chips, cols: COLS, playing: false })
+  run({ chips, levels: FLAT, seconds: 0.1 })
+  const falling = chips.map(chip => chip.y)
+  reassignChips({ chips, cols: COLS, playing: true, levels: QUIET })
+  assert.equal(chips.length, COLS)
+  chips.forEach((chip, col) => {
+    assert.equal(chip.role, 'cap')
+    assert.equal(chip.y, Math.max(falling[col], QUIET[col]))
+  })
+})

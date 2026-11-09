@@ -2,10 +2,11 @@ export const CAP_GRAVITY = 1.4
 export const CAP_HOLD_S = 0.35
 export const DEBRIS_GRAVITY = 3.2
 
-export const reassignChips = ({ chips, cols, playing }) => {
+export const reassignChips = ({ chips, cols, playing, levels = [] }) => {
   if (!playing) return dropChips(chips)
+  const heights = Array.from({ length: cols }, (_, col) => resumeHeight({ chips, col, level: levels[col] }))
   chips.length = 0
-  for (let col = 0; col < cols; col++) chips.push(createChip(col))
+  for (let col = 0; col < cols; col++) chips.push(createChip(col, heights[col]))
 }
 
 export const stepChips = ({ chips, levels, dt, segments, reducedMotion }) => {
@@ -19,7 +20,10 @@ export const stepChips = ({ chips, levels, dt, segments, reducedMotion }) => {
 
 export const chipSegment = (chip, segments) => Math.max(0, Math.min(segments - 1, Math.floor(chip.y * segments)))
 
-const createChip = col => ({ col, y: 0, vy: 0, role: 'cap', hold: 0, rose: false })
+const createChip = (col, y = 0) => ({ col, y, vy: 0, role: 'cap', hold: 0, rose: false })
+
+const resumeHeight = ({ chips, col, level = 0 }) =>
+  chips.reduce((height, chip) => chip.col === col ? Math.max(height, chip.y) : height, Math.max(0, level))
 
 const dropChips = chips => {
   for (const chip of chips) {
