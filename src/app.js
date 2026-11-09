@@ -23,6 +23,7 @@ export const createApp = ({ engine, settings, persist }) => {
     subscribe: listener => subscribe(app, listener),
     togglePlay: () => setPlaying(app, !app.state.playing),
     setPlaying: on => setPlaying(app, on),
+    unlockAudio: () => unlockAudio(app),
     halt: () => halt(app),
     setPos: pos => choosePos(app, pos),
     nudgePos: steps => choosePos(app, app.state.pos + steps * POS_STEP),
@@ -54,6 +55,10 @@ const setPlaying = (app, on) => {
   if (!on) return engine.pause()
   engine.setVolume(state.volume)
   engine.play().catch(() => stopAfterFailure(app))
+}
+
+const unlockAudio = app => {
+  if (app.state.playing) app.engine.unlock()
 }
 
 const halt = app => {

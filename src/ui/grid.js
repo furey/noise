@@ -10,7 +10,6 @@ const MIN_COLS = 12
 const MIN_ROWS = 8
 
 const ROUNDED_TOP_ROWS = 3
-const ROUNDED_BOTTOM_ROWS = 1
 
 export const measureGrid = ({ width, height, dpr, insets }) => {
   const cols = Math.max(MIN_COLS, Math.round(width / clamp(width / CELLS_ACROSS, CELL_MIN_PX, CELL_MAX_PX)))
@@ -19,7 +18,7 @@ export const measureGrid = ({ width, height, dpr, insets }) => {
   const stepY = height / rows
   const rounded = insets.top > 0 || insets.bottom > 0
   const gap = Math.max(2, Math.round(cellW * 0.09 * dpr))
-  const colourTop = rows - COLOUR_ROWS - (rounded ? ROUNDED_BOTTOM_ROWS : 0)
+  const colourTop = rows - COLOUR_ROWS - (rounded ? homeBarRows(insets.bottom, stepY) : 0)
   return {
     dpr, width, height, cols, cellW, stepY, rows, gap, insets, rounded,
     synthRows: colourTop,
@@ -28,6 +27,8 @@ export const measureGrid = ({ width, height, dpr, insets }) => {
     timerRow: rounded ? Math.max(ROUNDED_TOP_ROWS, Math.ceil(insets.top / stepY)) : 1,
   }
 }
+
+const homeBarRows = (bottomInset, stepY) => Math.max(1, Math.ceil(bottomInset / stepY))
 
 export const zoneAt = (grid, y) => {
   if (!grid) return 'synth'

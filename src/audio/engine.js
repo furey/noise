@@ -21,6 +21,7 @@ export const createEngine = () => {
     },
     prepare: () => prepare(engine),
     play: () => play(engine),
+    unlock: () => unlock(engine),
     pause: () => pause(engine),
     halt: () => halt(engine),
     fadeOut: seconds => fadeOut(engine, seconds),
@@ -49,6 +50,12 @@ const play = async engine => {
   if (!engine.wanted) return
   engine.live = true
   rampTo(engine, engine.volume, FADE_IN_S)
+}
+
+const unlock = engine => {
+  if (!engine.wanted || engine.live || !engine.ctx) return
+  engine.ctx.resume().catch(() => {})
+  engine.element?.play().catch(() => {})
 }
 
 const pause = engine => {

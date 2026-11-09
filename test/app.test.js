@@ -12,6 +12,7 @@ const fakeEngine = () => {
       engine.interrupt = listener
     },
     play: async () => engine.calls.push('play'),
+    unlock: () => engine.calls.push('unlock'),
     pause: () => engine.calls.push('pause'),
     halt: () => engine.calls.push('halt'),
     fadeOut: () => engine.calls.push('fade'),
@@ -69,6 +70,15 @@ test('the clock does not tick while paused', () => withClock(() => {
   mock.timers.tick(10000)
   assert.equal(renders, before)
 }))
+
+test('a finger lift unlocks the audio only while the app is playing', () => {
+  const { app, engine } = start()
+  app.unlockAudio()
+  assert.equal(engine.calls.includes('unlock'), false)
+  app.setPlaying(true)
+  app.unlockAudio()
+  assert.equal(engine.calls.at(-1), 'unlock')
+})
 
 test('an interrupted engine shows as paused', () => {
   const { app, engine } = start()

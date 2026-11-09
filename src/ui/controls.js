@@ -56,6 +56,7 @@ const dragVolume = ({ app, layout, surface, dragVolume, playingAtPress }, { dy }
 }
 
 const onRelease = (controls, { zone }) => {
+  controls.app.unlockAudio()
   if (zone === 'colour') return endColourDrag(controls)
   delete controls.surface.dataset.drag
 }
