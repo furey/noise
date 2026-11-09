@@ -15,6 +15,7 @@ export const createApp = ({ engine, settings, persist }) => {
   }
   engine.setPosition(app.state.pos)
   engine.setVolume(app.state.volume)
+  engine.onInterrupt(() => stopAfterInterruption(app))
   return {
     state: app.state,
     subscribe: listener => subscribe(app, listener),
@@ -41,6 +42,7 @@ const setPlaying = (app, on) => {
   const { state, engine } = app
   state.playing = on
   state.timer = unfade(state.timer)
+  syncClock(app)
   notify(app)
   if (!on) return engine.pause()
   engine.setVolume(state.volume)
@@ -50,6 +52,7 @@ const setPlaying = (app, on) => {
 const halt = app => {
   app.state.playing = false
   app.state.timer = unfade(app.state.timer)
+  syncClock(app)
   app.engine.halt()
   notify(app)
 }
@@ -57,7 +60,12 @@ const halt = app => {
 const stopAfterFailure = app => {
   if (!app.state.playing) return
   app.state.playing = false
+  syncClock(app)
   notify(app)
+}
+
+const stopAfterInterruption = app => {
+  if (app.state.playing) setPlaying(app, false)
 }
 
 const setPos = (app, pos) => {
@@ -88,23 +96,20 @@ const advanceTimer = app => {
 }
 
 const tick = app => {
-  const now = performance.now()
-  const elapsed = now - app.clock.last
+  const now = Date.now()
+  const elapsed = Math.max(0, now - app.clock.last)
   app.clock.last = now
   const { timer, event } = tickTimer({ timer: app.state.timer, elapsed, playing: app.state.playing })
   app.state.timer = timer
   if (event === 'fade') app.engine.fadeOut(timer.left / 1000)
-  if (event === 'end') {
-    stopClock(app)
-    return setPlaying(app, false)
-  }
+  if (event === 'end') return setPlaying(app, false)
   notify(app)
 }
 
 const syncClock = app => {
-  if (!isTimerOn(app.state.timer)) return stopClock(app)
+  if (!isTimerOn(app.state.timer) || !app.state.playing) return stopClock(app)
   if (app.clock.id) return
-  app.clock.last = performance.now()
+  app.clock.last = Date.now()
   app.clock.id = setInterval(() => tick(app), CLOCK_MS)
 }
 

@@ -13,9 +13,12 @@ export const isAudioSupported = () => Boolean(audioContextClass() && window.Audi
 export const createEngine = () => {
   const engine = {
     ctx: null, noise: null, master: null, analyser: null, element: null, fallbackSource: null,
-    booting: null, wanted: false, suspendTimer: 0, position: 0, volume: 0.6,
+    booting: null, wanted: false, live: false, suspendTimer: 0, position: 0, volume: 0.6, onInterrupt: () => {},
   }
   return {
+    onInterrupt: listener => {
+      engine.onInterrupt = listener
+    },
     play: () => play(engine),
     pause: () => pause(engine),
     halt: () => halt(engine),
@@ -31,18 +34,21 @@ const play = async engine => {
   engine.wanted = true
   clearTimeout(engine.suspendTimer)
   engine.booting ??= boot(engine).catch(error => {
-    engine.booting = null
+    discard(engine)
     throw error
   })
   await engine.booting
   if (!engine.wanted) return scheduleSuspend(engine)
-  if (engine.ctx.state !== 'running') await engine.ctx.resume()
+  await engine.ctx.resume()
   await startElement(engine)
-  if (engine.wanted) rampTo(engine, engine.volume, FADE_IN_S)
+  if (!engine.wanted) return
+  engine.live = true
+  rampTo(engine, engine.volume, FADE_IN_S)
 }
 
 const pause = engine => {
   engine.wanted = false
+  engine.live = false
   if (!engine.master) return
   rampTo(engine, 0, FADE_OUT_S)
   scheduleSuspend(engine)
@@ -50,11 +56,22 @@ const pause = engine => {
 
 const halt = engine => {
   engine.wanted = false
+  engine.live = false
   clearTimeout(engine.suspendTimer)
   if (!engine.ctx) return
   engine.element?.pause()
-  engine.ctx.close().catch(() => {})
+  discard(engine)
+}
+
+const discard = engine => {
+  engine.ctx?.close().catch(() => {})
   Object.assign(engine, { ctx: null, noise: null, master: null, analyser: null, element: null, fallbackSource: null, booting: null })
+}
+
+const interrupt = (engine, source) => {
+  if (!engine.live || source !== engine.ctx && source !== engine.element) return
+  if (engine.ctx.state === 'running' && !engine.element?.paused) return
+  engine.onInterrupt()
 }
 
 const scheduleSuspend = engine => {
@@ -91,6 +108,7 @@ const boot = async engine => {
   setPlaybackSession()
   const ctx = new AudioContext()
   engine.ctx = ctx
+  ctx.addEventListener('statechange', () => interrupt(engine, ctx))
   await ctx.audioWorklet.addModule(workletUrl)
   const noise = new AudioWorkletNode(ctx, 'noise', {
     numberOfInputs: 0,
@@ -125,6 +143,7 @@ const routeOutput = (engine, source) => {
   const element = new Audio()
   element.srcObject = stream.stream
   element.setAttribute('playsinline', '')
+  element.addEventListener('pause', () => interrupt(engine, element))
   Object.assign(engine, { element, fallbackSource: source })
 }
 
@@ -133,6 +152,7 @@ const startElement = async engine => {
   try {
     await engine.element.play()
   } catch {
+    if (!engine.ctx) return
     engine.fallbackSource.connect(engine.ctx.destination)
     engine.element = null
   }
