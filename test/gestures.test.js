@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  SWEEP_LEG_MS, TAP_MAX_MS, TAP_SLOP_PX, classifyRelease, createSweep, hasMoved, registerSweep,
+  TAP_MAX_MS, TAP_SLOP_PX, classifyRelease, hasMoved,
 } from '../src/ui/gestures.js'
 
 test('a short still press is a tap', () => {
@@ -24,15 +24,3 @@ test('a cancelled pointer is ignored', () => {
 })
 
 
-const sweepThrough = (sweep, steps) => steps.map(([pos, t]) => registerSweep(sweep, { pos, last: 4, t }))
-
-test('brown to violet and back, twice, starts wave mode', () => {
-  const sweep = createSweep()
-  const results = sweepThrough(sweep, [[0, 0], [2, 300], [4, 600], [2, 900], [0, 1200], [4, 1800], [0.1, 2400]])
-  assert.deepEqual(results, [false, false, false, false, false, false, true])
-})
-
-test('a slow leg or a start away from brown does not count', () => {
-  assert.equal(sweepThrough(createSweep(), [[4, 0], [0, 500], [4, 1000], [0, 1500]]).includes(true), false)
-  assert.equal(sweepThrough(createSweep(), [[0, 0], [4, 500], [0, 500 + SWEEP_LEG_MS + 1], [4, 6000], [0, 6500]]).includes(true), false)
-})

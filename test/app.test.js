@@ -77,3 +77,25 @@ test('an interrupted engine shows as paused', () => {
   assert.equal(app.state.playing, false)
   assert.equal(engine.calls.at(-1), 'pause')
 })
+
+test('stop ends wave mode and pauses the sound', () => {
+  const { app } = start()
+  app.toggleWave()
+  assert.equal(app.state.wave, true)
+  assert.equal(app.state.playing, true)
+  app.stop()
+  assert.equal(app.state.wave, false)
+  assert.equal(app.state.playing, false)
+  app.dispose()
+})
+
+test('a colour change during wave mode keeps wave mode on', () => {
+  const { app } = start()
+  app.toggleWave()
+  app.setPos(3)
+  assert.equal(app.state.wave, true)
+  assert.equal(app.state.pos, 3)
+  app.toggleWave()
+  assert.equal(app.state.wave, false)
+  app.dispose()
+})

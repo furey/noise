@@ -27,6 +27,7 @@ export const createApp = ({ engine, settings, persist }) => {
     setPos: pos => choosePos(app, pos),
     nudgePos: steps => choosePos(app, app.state.pos + steps * POS_STEP),
     toggleWave: () => app.state.wave ? stopWave(app) : startWave(app),
+    stop: () => stop(app),
     setVolume: volume => setVolume(app, volume),
     nudgeVolume: steps => setVolume(app, app.state.volume + steps * VOLUME_STEP),
     selectColour: index => selectColour(app, index),
@@ -76,8 +77,13 @@ const stopAfterInterruption = app => {
 }
 
 const choosePos = (app, pos) => {
-  if (app.state.wave) stopWave(app)
   setPos(app, pos)
+  if (app.state.wave) restartTide(app)
+}
+
+const stop = app => {
+  if (app.state.wave) stopWave(app)
+  if (app.state.playing) setPlaying(app, false)
 }
 
 const setPos = (app, pos) => {
@@ -133,10 +139,14 @@ const stopClock = app => {
 const startWave = app => {
   const { state, tide } = app
   state.wave = true
-  Object.assign(tide, { wave: createWave({ from: state.pos }), seconds: 0, last: performance.now() })
+  restartTide(app)
   tide.id = setInterval(() => flowTide(app), WAVE_TICK_MS)
   if (!state.playing) setPlaying(app, true)
   notify(app)
+}
+
+const restartTide = app => {
+  Object.assign(app.tide, { wave: createWave({ from: app.state.pos }), seconds: 0, last: performance.now() })
 }
 
 const stopWave = app => {

@@ -1,10 +1,10 @@
 import { COLOUR_ROW_SHADES, LAST, LIGHT_INK, colourAt, inkRgb, isDarkInk, paletteFor, rgba, shadeRgb } from './colours.js'
-import { COLOUR_ROWS, fillCell, fillScreenCell, inTimer } from './grid.js'
+import { COLOUR_ROWS, fillCell, fillScreenCell, isReserved, waveCol } from './grid.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
-import { VISUALISERS } from './visualisers.js'
+import { createRadial, drawRadial, stepRadial } from './radial.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
-import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
+import { TIMER_BLINK_LOW, TIMER_BLINK_MS, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
 
 const INK_TINT_S = 0.4
 const INK_STEPS = 20
@@ -14,9 +14,10 @@ const SELECTOR_FILL = rgba(LIGHT_INK, 1)
 const FRAME_FILL = '#050505'
 const FRAME_CELL = 'rgba(255,255,255,.04)'
 
-export const createSynth = ({ spec, fx, visualiser = 'rings' }) => {
+export const createSynth = ({ spec, fx, radialMode = 'burst' }) => {
   const view = {
-    spec, fx, visualiser,
+    spec, fx, radialMode,
+    radial: createRadial(),
     g: spec.getContext('2d'),
     fg: fx.getContext('2d'),
     grid: null,
@@ -60,11 +61,12 @@ const draw = (view, frame) => {
   const size = timerSize(frame.timer)
   const visualising = frame.wave && frame.playing
   view.g.clearRect(0, 0, view.spec.width, view.spec.height)
-  if (visualising) drawVisualiser({ view, palette, size, now: frame.now })
+  if (visualising) drawVisualiser({ view, frame, palette, size })
   else drawBars({ view, palette, size, playing: frame.playing })
   if (!visualising) drawChips(view, size)
   drawColourRows(view, frame.pos)
   drawTimer({ view, frame, palette, size })
+  drawWaveDot({ view, frame, palette })
   const pixelCount = visualising ? 0 : drawPixels({ view, frame, palette, size })
   if (visualising) hidePixels(view)
   drawFrame(view)
@@ -95,7 +97,7 @@ const drawBars = ({ view, palette, size, playing }) => {
     const restSegment = playing || litSegments > 0 ? -1 : 0
     for (let seg = 0; seg < grid.synthRows; seg++) {
       const row = grid.synthRows - 1 - seg
-      if (inTimer(grid, size, col, row)) continue
+      if (isReserved(grid, size, col, row)) continue
       const style = seg < litSegments ? lit : seg === restSegment ? palette.rest : palette.ghost
       if (style !== current) g.fillStyle = current = style
       fillCell(g, grid, col, row)
@@ -109,7 +111,7 @@ const drawChips = (view, size) => {
   for (const chip of chips) {
     if (chip.y <= 0) continue
     const row = grid.synthRows - 1 - chipSegment(chip, grid.synthRows)
-    if (!inTimer(grid, size, chip.col, row)) fillCell(g, grid, chip.col, row)
+    if (!isReserved(grid, size, chip.col, row)) fillCell(g, grid, chip.col, row)
   }
 }
 
@@ -133,6 +135,20 @@ const drawSelector = ({ g, grid, pos }) => {
   }
 }
 
+const WAVE_BLINK_MS = TIMER_BLINK_MS * 1.5
+
+const drawWaveDot = ({ view, frame, palette }) => {
+  const { g, grid } = view
+  g.fillStyle = frame.wave || frame.playing ? inkStyle(view, waveAlpha(frame)) : palette.rest
+  fillCell(g, grid, waveCol(grid), grid.timerRow)
+}
+
+const waveAlpha = ({ wave, playing, now, reducedMotion }) => {
+  if (!wave) return TIMER_OFF_ALPHA
+  if (!playing || reducedMotion) return 1
+  return Math.floor(now / WAVE_BLINK_MS) % 2 ? TIMER_BLINK_LOW : 1
+}
+
 const drawTimer = ({ view, frame, palette, size }) => {
   const { g, grid } = view
   g.fillStyle = size || frame.playing ? inkStyle(view, timerAlpha(frame)) : palette.rest
@@ -147,17 +163,10 @@ const hidePixels = view => {
   view.fg.clearRect(0, 0, view.fx.width, view.fx.height)
 }
 
-const drawVisualiser = ({ view, palette, size, now }) => {
-  const { g, grid, spectrum } = view
-  const lit = gradientFor(view, palette)
-  const shape = VISUALISERS[view.visualiser]
-  for (let row = 0; row < grid.synthRows; row++) {
-    for (let col = 0; col < grid.cols; col++) {
-      if (inTimer(grid, size, col, row)) continue
-      g.fillStyle = shape({ grid, levels: spectrum.levels, col, row, t: now / 1000 }) ? lit : palette.ghost
-      fillCell(g, grid, col, row)
-    }
-  }
+const drawVisualiser = ({ view, frame, palette, size }) => {
+  const { g, grid, spectrum, radial, radialMode: mode } = view
+  stepRadial(radial, { levels: spectrum.levels, dt: frame.dt, volume: frame.volume, mode, reducedMotion: frame.reducedMotion })
+  drawRadial({ g, grid, radial, levels: spectrum.levels, size, mode, palette, ink: inkStyle(view, 1) })
 }
 
 const drawFrame = ({ g, grid }) => {
@@ -188,7 +197,7 @@ const drawPixels = ({ view, frame, palette, size }) => {
   const count = stepPixels({ pixels, dt: frame.dt })
   fg.clearRect(0, 0, fx.width, fx.height)
   for (const p of pixels.pool) {
-    if (!p.active || p.row < 0 || inTimer(grid, size, p.col, p.row)) continue
+    if (!p.active || p.row < 0 || isReserved(grid, size, p.col, p.row)) continue
     fg.globalAlpha = pixelAlpha(p)
     fg.fillStyle = palette[p.tone]
     fillCell(fg, grid, p.col, p.row)

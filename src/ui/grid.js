@@ -57,6 +57,17 @@ export const inTimer = (grid, size, col, row) => {
   return col <= grid.timerCol && col > grid.timerCol - cells && row >= grid.timerRow && row < grid.timerRow + cells
 }
 
+export const isReserved = (grid, size, col, row) => inTimer(grid, size, col, row) || inWaveDot(grid, col, row)
+
+export const inWaveDot = (grid, col, row) => col === waveCol(grid) && row === grid.timerRow
+
+export const waveCol = grid => grid.cols - 1 - grid.timerCol
+
+export const waveHitBox = grid => {
+  const timer = timerHitBox(grid, 0)
+  return { ...timer, left: grid.width - timer.left - timer.width }
+}
+
 export const timerHitBox = (grid, size) => {
   const cells = Math.max(1, size)
   const width = Math.max(TIMER_MIN_TAP_PX, cells * grid.cellW)

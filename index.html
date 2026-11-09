@@ -23,9 +23,7 @@
       .-~~       ~~-.    .-~~       ~~-.    .-~~       ~~-.
   ~~~~               ~~~~               ~~~~               ~~~~
 
-  wave mode: type w-a-v-e, or drag the colours from brown to violet and back, twice.
-  the noise breathes in from brown and back, like the sea.
-  any colour change ends it.
+  wave mode: the top-left dot. the noise breathes in from brown and back, like the sea.
 -->
 <div class="layers" aria-hidden="true">
   <div class="layer" data-id="brown"></div>
@@ -38,6 +36,7 @@
 <main id="surface">
   <canvas id="spec" aria-hidden="true"></canvas>
   <button class="sr" id="play" type="button" aria-label="Play"></button>
+  <button class="hit" id="wave" type="button" aria-label="Wave mode" aria-pressed="false"></button>
   <button class="hit" id="timer" type="button" aria-label="Timer off" aria-pressed="false"></button>
   <label class="sr" for="slope">Noise colour</label>
   <input class="sr" id="slope" type="range" min="0" max="4" step="0.25" value="0">

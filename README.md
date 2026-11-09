@@ -169,6 +169,7 @@ From the home screen, Noise opens full screen, like an app. After the first visi
 
 - [Controls](#controls)
 - [Sleep timer](#sleep-timer)
+- [Wave mode](#wave-mode)
 - [Keyboard](#keyboard)
 - [Desktop window](#desktop-window)
 - [Background play](#background-play)
@@ -212,11 +213,18 @@ The square gets smaller as the time runs down, so a `60` minute timer shows `3` 
 
 The timer counts down only while the sound plays. In the last minute, the sound fades out, then it stops.
 
+### Wave mode
+
+The dot in the top-left corner turns wave mode on and off. In wave mode, the noise breathes like the sea: it rises from brown to a random colour, holds, then eases back to brown, with a gentle swell in volume. The dot blinks while wave mode is on.
+
+The synth changes shape in wave mode. The bars point out from a black centre, each with its own white peak block, and the circle turns slowly. A drag on the colour strip moves the wave to that colour, and the wave carries on from there.
+
 ### Keyboard
 
 | Key       | Action                                    |
 | --------- | ----------------------------------------- |
 | `Space`   | Play or pause                             |
+| `Esc`     | Stop the sound and wave mode              |
 | `1`–`5`   | Play brown, pink, white, blue, or violet  |
 | `←` / `→` | Move the colour a quarter step down or up |
 | `↑` / `↓` | Turn the volume up or down by `5%`        |

@@ -1,5 +1,5 @@
 import { COLOURS, isDarkInk, layerOpacity, nearestColour, slopeText } from './colours.js'
-import { timerHitBox } from './grid.js'
+import { timerHitBox, waveHitBox } from './grid.js'
 import { isTimerOn, timerLabel, timerSize } from './timer.js'
 
 export const createView = doc => {
@@ -9,6 +9,7 @@ export const createView = doc => {
     layers: COLOURS.map(({ id }) => doc.querySelector(`.layer[data-id="${id}"]`)),
     play: doc.getElementById('play'),
     timer: doc.getElementById('timer'),
+    wave: doc.getElementById('wave'),
     slope: doc.getElementById('slope'),
     volume: doc.getElementById('volume'),
     grid: null,
@@ -29,6 +30,7 @@ const render = (view, state) => {
   renderInputs(view, state)
   view.play.setAttribute('aria-label', state.playing ? 'Pause' : 'Play')
   view.timer.setAttribute('aria-pressed', String(isTimerOn(state.timer)))
+  view.wave.setAttribute('aria-pressed', String(state.wave))
   view.timer.setAttribute('aria-label', timerLabel(state.timer))
   const size = timerSize(state.timer)
   if (size !== view.timerSize && view.grid) placeTimer(view, view.grid, size)
@@ -44,8 +46,12 @@ const renderInputs = (view, state) => {
 
 const placeTimer = (view, grid, size) => {
   Object.assign(view, { grid, timerSize: size })
-  const box = timerHitBox(grid, size)
-  Object.assign(view.timer.style, {
+  placeBox(view.wave, waveHitBox(grid))
+  placeBox(view.timer, timerHitBox(grid, size))
+}
+
+const placeBox = (element, box) => {
+  Object.assign(element.style, {
     left: `${box.left}px`,
     top: `${box.top}px`,
     width: `${box.width}px`,
