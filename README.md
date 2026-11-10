@@ -22,7 +22,7 @@
   <a href="#download"><strong>Download for your computer →</strong></a>
 </p>
 
-<https://github.com/user-attachments/assets/45b85cc4-156d-4705-9fd8-1e707b6c5c91>
+<https://github.com/user-attachments/assets/9c756658-c0ac-41bf-b58d-a3bba24bed3f>
 
 ## Contents
 
@@ -386,7 +386,7 @@ Then, in a second terminal:
 | `node scripts/capture-social.mjs`  | `social.png`, the preview picture for links to the repository                      |
 | `node scripts/render-icon-gif.mjs` | `app-icon.gif` and `app-icon.png`                                                  |
 
-Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the videos, and `--out <folder>` to write them somewhere other than `docs/media`. The videos in this README are GitHub attachments. To replace one, drag the new `.mp4` into a GitHub comment box, then put the new URL in this README. The [`docs-media`](https://github.com/furey/noise/releases/tag/docs-media) release keeps a copy of each file; the icon at the top of this README loads from it. The sound in each video is not a recording: the script runs the noise worklet in Node.js and follows the same taps and drags as the video.
+Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the videos, and `--out <folder>` to write them somewhere other than `docs/media`. The videos in this README are GitHub attachments. To replace one, run `./scripts/upload-demo.sh docs/media/<name>.mp4` and put the URL it prints in this README. The script uses the upload endpoint behind GitHub's comment box, with your `gh` login; if GitHub retires it, drag the `.mp4` into any GitHub comment box instead. The [`docs-media`](https://github.com/furey/noise/releases/tag/docs-media) release keeps a copy of each file; the icon at the top of this README loads from it. The sound in each video is not a recording: the script runs the noise worklet in Node.js and follows the same taps and drags as the video.
 
 ### Build workflow
 
