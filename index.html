@@ -1,3 +1,54 @@
+<!--
+
+  ▄▄▀▀▀▀▀▀▀▀▄▄    NOISE
+██            ██  Brown, pink, white, blue, and violet noise for focus.
+████  ▄▄▄▄  ████  https://noise.furey.dev
+▀▀██  ▀▀▀▀  ██▀▀  by @furey • https://about.me/jamesfurey
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ■ wave mode                                     sleep timer ■ ■ ■│
+│                                                                  │
+│                              SYNTH                               │
+│                tap ........... play / pause                      │
+│                drag up/down .. volume                            │
+│                                                                  │
+│▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ COLOUR STRIP ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
+│        tap or drag ... brown → pink → white → blue → violet      │
+└──────────────────────────────────────────────────────────────────┘
+
+POINTER AND TOUCH
+  tap synth .................. play; pause while playing
+  drag synth up or down ...... volume, while playing
+  tap or drag colour strip ... colour; plays if stopped
+  tap top-left dot ........... wave mode on or off
+  tap top-right dots ......... sleep timer: 30 → 20 → 10min → off
+
+KEYS
+  Space ...... play or pause
+  1 – 5 ...... brown, pink, white, blue, violet
+  ← → ........ colour, a quarter step
+  ↑ ↓ ........ volume, 5% step
+  T .......... sleep timer
+  Esc ........ stop the sound and wave mode
+
+WAVE MODE
+  The colour rises from brown to a random crest, holds, and falls
+  back: 4.5–8s up, 5–9s down. The volume swells with it.
+  A colour change moves the wave to that colour. A pause ends it.
+  Started from silence, wave mode off also stops the sound.
+
+SLEEP TIMER
+  The sound fades out over the last 60s, then stops.
+
+DESKTOP APP
+  Mac, Windows, and Linux. No network access.
+  View → Always on Top keeps the window above other windows.
+  Cmd+W (Mac) closes the window.
+
+SOURCE
+  https://github.com/furey/noise · GPL-3.0-or-later
+
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -18,13 +69,6 @@
 <script type="module" src="/src/main.js"></script>
 </head>
 <body>
-<!--
-          .-~~~-.            .-~~~-.            .-~~~-.
-      .-~~       ~~-.    .-~~       ~~-.    .-~~       ~~-.
-  ~~~~               ~~~~               ~~~~               ~~~~
-
-  wave mode: the top-left dot. the noise breathes in from brown and back, like the sea.
--->
 <div class="layers" aria-hidden="true">
   <div class="layer" data-id="brown"></div>
   <div class="layer" data-id="pink"></div>
