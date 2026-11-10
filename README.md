@@ -262,6 +262,8 @@ To keep the window above other windows, choose **View → Always on Top**. On Wi
 
 The sound keeps playing in the background where the browser allows it. The app also gives play and pause actions to the media controls of your device. The desktop app keeps playing when you minimise it.
 
+The grid redraws at most `30` times a second, and not at all while it is still, hidden, or minimised. On a 2019 Intel MacBook Pro, the desktop app uses about a quarter of one CPU core while it plays, and memory stays flat over long sessions.
+
 In wave mode, the app gives the browser the next `2` seconds of the wave ahead of time. A background tab runs timers only once a second, so the sound still rises and falls smoothly there.
 
 ## Privacy
