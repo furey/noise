@@ -14,6 +14,7 @@ const MIN_COLS = 12
 const MIN_ROWS = 8
 
 const ROUNDED_TOP_ROWS = 3
+const TITLEBAR_MARGIN_PX = 12
 
 export const measureGrid = ({ width, height, dpr, insets, titlebar = 0, mouse = false }) => {
   const minCell = mouse ? smallestCell(Math.min(width, height)) : CELL_MIN_PX
@@ -30,7 +31,7 @@ export const measureGrid = ({ width, height, dpr, insets, titlebar = 0, mouse = 
     synthRows: colourTop,
     colourTop,
     timerCol: cols - 2 - Math.ceil(insets.right / cellW),
-    timerRow: rounded || titlebar > 0 ? Math.max(ROUNDED_TOP_ROWS, Math.ceil(Math.max(insets.top, titlebar) / stepY)) : 1,
+    timerRow: rounded || titlebar > 0 ? Math.max(ROUNDED_TOP_ROWS, Math.ceil(Math.max(insets.top, titlebar + TITLEBAR_MARGIN_PX) / stepY)) : 1,
   }
 }
 

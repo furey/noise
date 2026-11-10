@@ -46,3 +46,8 @@ test('with a mouse, the dot targets are two cells wide', () => {
   const grid = measureGrid({ width: 280, height: 220, dpr: 2, insets: NO_INSETS, mouse: true })
   assert.equal(grid.tapMin, grid.cellW * 2)
 })
+
+test('in a small Mac window, the dots sit at least 12 px below the title bar', () => {
+  const grid = measureGrid({ width: 280, height: 220, dpr: 2, insets: NO_INSETS, titlebar: 32, mouse: true })
+  assert.ok(grid.timerRow * grid.stepY >= 44)
+})

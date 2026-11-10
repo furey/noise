@@ -81,6 +81,9 @@ On a phone or tablet, use the [web app](#web-app). All versions are on the [rele
 
 Noise is free and open source. Anyone can read its code in this repository. Apple and Microsoft charge every year for the certificate that signs an app, so the app is unsigned. Because of this, your computer shows a warning the first time you open it. The steps below show each warning and the button to press.
 
+> [!NOTE]<br>
+> The pictures in the steps below are illustrations of the system messages, not screenshots. The wording on your computer can differ a little.
+
 The desktop app blocks all network access. It reads and writes only its own settings.
 
 ### First open on a Mac
@@ -96,11 +99,26 @@ Your steps depend on your macOS version. To check it, open the Apple menu and ch
 2. Drag **Noise** into the **Applications** folder.
 3. Open the **Applications** folder and double-click **Noise**.
 4. A message says "Noise" Not Opened. Click **Done**. Do not click **Move to Trash**.
+
+   <p align="center">
+     <img src="https://github.com/furey/noise/releases/download/docs-media/first-open-mac15-1-not-opened.png" alt="Illustration of the macOS message that Noise was not opened, with the Done button marked" width="600"/>
+     <br/><em>Illustration: the first macOS message</em>
+   </p>
 5. Open the Apple menu and choose **System Settings**.
 6. Click **Privacy & Security** in the sidebar.
 7. Scroll down to the **Security** section.
 8. Next to "Noise" was blocked to protect your Mac, click **Open Anyway**.
+
+   <p align="center">
+     <img src="https://github.com/furey/noise/releases/download/docs-media/first-open-mac15-2-open-anyway.png" alt="Illustration of Privacy and Security settings saying Noise was blocked to protect your Mac, with the Open Anyway button marked" width="600"/>
+     <br/><em>Illustration: Open Anyway in Privacy &amp; Security</em>
+   </p>
 9. Click **Open Anyway** in the next message.
+
+   <p align="center">
+     <img src="https://github.com/furey/noise/releases/download/docs-media/first-open-mac15-3-confirm.png" alt="Illustration of the macOS message asking to open Noise, with the Open Anyway button marked" width="600"/>
+     <br/><em>Illustration: the Open Anyway message</em>
+   </p>
 10. Type your Mac login password, or use Touch ID, when your Mac asks.
 
 The **Open Anyway** button stays for about one hour after you first try to open the app. If it is gone, do steps 3 and 4 again, then continue from step 5.
@@ -113,6 +131,11 @@ The **Open Anyway** button stays for about one hour after you first try to open 
 4. Hold the Control key and click **Noise**.
 5. Choose **Open**.
 6. Click **Open** in the message.
+
+   <p align="center">
+     <img src="https://github.com/furey/noise/releases/download/docs-media/first-open-mac14-1-open.png" alt="Illustration of the macOS Sonoma message that Noise.app cannot be checked for malicious software, with the Open button marked" width="600"/>
+     <br/><em>Illustration: the Open message</em>
+   </p>
 
 You do these steps once. After that, the app opens with a double-click.
 
@@ -129,8 +152,18 @@ To open the app after the download:
 
 1. Double-click the `.exe` file you downloaded.
 2. If a blue message says Windows protected your PC, click **More info**. If no message appears, go to step 5.
+
+   <p align="center">
+     <img src="https://github.com/furey/noise/releases/download/docs-media/first-open-windows-protected.png" alt="Illustration of the blue Windows protected your PC message, with the More info link marked" width="600"/>
+     <br/><em>Illustration: Windows protected your PC</em>
+   </p>
 3. If you saw the message, check that the **Publisher** line says Unknown publisher.
 4. If you saw the message, click **Run anyway**.
+
+   <p align="center">
+     <img src="https://github.com/furey/noise/releases/download/docs-media/first-open-windows-run-anyway.png" alt="Illustration of the Windows protected your PC message with Unknown publisher, with the Run anyway button marked" width="600"/>
+     <br/><em>Illustration: Run anyway</em>
+   </p>
 5. Wait for the app to install and open. It installs for your Windows user only, and it is in the Start menu after that.
 
 ### First open on Linux
@@ -139,6 +172,11 @@ To open the app after the download:
 2. Right-click the file and choose **Properties**.
 3. Click the **Permissions** tab.
 4. Turn on **Allow executing file as program**. Newer versions of GNOME Files call it **Executable as Program**. KDE Dolphin calls it **Is executable**.
+
+   <p align="center">
+     <img src="https://github.com/furey/noise/releases/download/docs-media/first-open-linux-allow-executing.png" alt="Illustration of the Permissions tab of the AppImage file properties, with the Allow executing file as program checkbox marked" width="600"/>
+     <br/><em>Illustration: Allow executing file as program</em>
+   </p>
 5. Close the **Properties** window.
 6. Double-click the file.
 
