@@ -74,7 +74,7 @@ const draw = (view, frame) => {
   const linear = radial.morph === 0
   const ink = inkStyle(view, 1)
   view.g.clearRect(0, 0, view.spec.width, view.spec.height)
-  drawBars({ view, palette, size, playing: frame.playing, scale: linearShare(radial) })
+  drawBars({ view, palette, size, playing: frame.playing, scale: linearShare(radial), stripLocked: frame.stripLocked })
   if (linear) drawChips(view, size)
   else drawRadial({ g: view.g, grid, radial, size, palette, ink })
   drawFlock({ g: view.g, grid, radial, chips, size, ink, playing: frame.playing })
@@ -105,13 +105,13 @@ const stepTint = (view, frame) => {
   return view.tint === target
 }
 
-const drawBars = ({ view, palette, size, playing, scale }) => {
+const drawBars = ({ view, palette, size, playing, scale, stripLocked }) => {
   const { g, grid, spectrum } = view
   const lit = gradientFor(view, palette)
   let current = null
   for (let col = 0; col < grid.cols; col++) {
     const litSegments = Math.round(spectrum.levels[col] * scale * grid.synthRows)
-    const restSegment = playing || litSegments > 0 ? -1 : 0
+    const restSegment = playing || stripLocked || litSegments > 0 ? -1 : 0
     for (let seg = 0; seg < grid.synthRows; seg++) {
       const row = grid.synthRows - 1 - seg
       if (isReserved(grid, size, col, row)) continue
