@@ -5,6 +5,7 @@ import { bindControls } from './ui/controls.js'
 import { measureGrid } from './ui/grid.js'
 import { createFrameLoop, pickFrameRate } from './ui/loop.js'
 import { bindMediaSession } from './ui/media.js'
+import { sharePlayback } from './ui/playback-channel.js'
 import { createSynth } from './ui/synth.js'
 import { createView } from './ui/view.js'
 
@@ -55,6 +56,7 @@ const start = () => {
     syncPlayback(state.playing)
     loop.wake()
   })
+  sharePlayback(app)
   registerServiceWorker()
 }
 

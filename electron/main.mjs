@@ -1,17 +1,30 @@
-import { app, BrowserWindow, Menu, protocol, screen, session } from 'electron'
+import { app, BrowserWindow, Menu, protocol, screen, session, shell } from 'electron'
 import path from 'node:path'
 import { APP_ORIGIN, APP_SCHEME, isAppUrl, serveAppFile } from './app-files.mjs'
 import { createInstallAccess, grantSandboxReadAccess } from './install-access.mjs'
+import { SOURCE_URL, isExternalLink } from './links.mjs'
 import { MIN_SIZE, createWindowState } from './window-state.mjs'
 
 const BACKGROUND = '#050505'
 const ALWAYS_ON_TOP_ID = 'always-on-top'
+const HELP_ID = 'help'
+const HELP_SIZE = { width: 660, height: 760 }
+const HELP_MIN_SIZE = { width: 600, height: 320 }
 const SHOW_FALLBACK_MS = 5000
 const PAGE_URL = `${APP_ORIGIN}/index.html`
+const HELP_URL = `${APP_ORIGIN}/help.html`
 const BLOCKED_URLS = ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*', 'file://*/*']
 const isMac = process.platform === 'darwin'
+const WEB_PREFERENCES = {
+  contextIsolation: true,
+  sandbox: true,
+  nodeIntegration: false,
+  webSecurity: true,
+  spellcheck: false,
+  devTools: !app.isPackaged,
+}
 
-const state = { window: null, windowState: null, installAccess: null }
+const state = { window: null, help: null, windowState: null, installAccess: null }
 
 const main = () => {
   if (process.env.NOISE_USER_DATA) app.setPath('userData', process.env.NOISE_USER_DATA)
@@ -59,14 +72,7 @@ const createWindow = () => {
     show: false,
     backgroundColor: BACKGROUND,
     ...(isMac ? { titleBarStyle: 'hiddenInset' } : { autoHideMenuBar: true }),
-    webPreferences: {
-      contextIsolation: true,
-      sandbox: true,
-      nodeIntegration: false,
-      webSecurity: true,
-      spellcheck: false,
-      devTools: !app.isPackaged,
-    },
+    webPreferences: WEB_PREFERENCES,
   })
   if (!isMac) window.setMenuBarVisibility(false)
   Menu.getApplicationMenu().getMenuItemById(ALWAYS_ON_TOP_ID).checked = alwaysOnTop
@@ -78,9 +84,44 @@ const createWindow = () => {
   window.on('close', () => rememberBounds(window))
   window.on('closed', () => {
     state.window = null
+    state.help?.close()
   })
   window.loadURL(PAGE_URL).catch(() => null)
   return window
+}
+
+const openHelp = () => {
+  if (state.help && !state.help.isDestroyed()) return state.help.focus()
+  state.help = createHelpWindow()
+}
+
+const createHelpWindow = () => {
+  const parent = state.window && !state.window.isDestroyed() ? state.window : undefined
+  const help = new BrowserWindow({
+    ...HELP_SIZE,
+    ...(parent ? {} : { center: true }),
+    parent,
+    minWidth: HELP_MIN_SIZE.width,
+    minHeight: HELP_MIN_SIZE.height,
+    title: 'Noise Help',
+    show: false,
+    backgroundColor: BACKGROUND,
+    ...(isMac ? {} : { autoHideMenuBar: true }),
+    webPreferences: WEB_PREFERENCES,
+  })
+  if (!isMac) help.setMenuBarVisibility(false)
+  help.webContents.setWindowOpenHandler(({ url }) => openExternalLink(url))
+  help.once('ready-to-show', () => help.show())
+  help.on('closed', () => {
+    state.help = null
+  })
+  help.loadURL(`${HELP_URL}?v=${encodeURIComponent(app.getVersion())}`).catch(() => null)
+  return help
+}
+
+const openExternalLink = url => {
+  if (isExternalLink(url)) shell.openExternal(url).catch(() => null)
+  return { action: 'deny' }
 }
 
 const revealWindow = ({ window, maximized }) => {
@@ -147,6 +188,11 @@ const buildMenu = () => Menu.buildFromTemplate([
     { role: 'togglefullscreen' },
   ] },
   { role: 'windowMenu' },
+  { role: 'help', submenu: [
+    { id: HELP_ID, label: 'Noise Help', accelerator: isMac ? 'Command+?' : 'F1', click: openHelp },
+    { type: 'separator' },
+    { label: 'Source on GitHub', click: () => openExternalLink(SOURCE_URL) },
+  ] },
 ])
 
 main()

@@ -116,6 +116,33 @@ test('the Always on Top menu item pins the window and survives a restart', { tim
   }, userData)
 })
 
+test('Help → Noise Help opens one help window whose links open in the browser', { timeout: TEST_TIMEOUT_MS }, async () => {
+  await withApp(async ({ app, watch }) => {
+    await app.evaluate(({ shell }) => {
+      globalThis.openedLinks = []
+      shell.openExternal = async url => globalThis.openedLinks.push(url)
+    })
+    const opened = app.waitForEvent('window')
+    await app.evaluate(({ Menu }) => Menu.getApplicationMenu().getMenuItemById('help').click())
+    const help = await opened
+    await help.waitForSelector('#help a')
+    await app.evaluate(({ Menu }) => Menu.getApplicationMenu().getMenuItemById('help').click())
+    await delay(500)
+    assert.equal(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length), 2)
+    assert.equal(await help.title(), 'Noise Help')
+    assert.match(await help.textContent('#help'), /NOISE \d+\.\d+\.\d+/)
+    await help.click('a[href="https://about.me/jamesfurey"]')
+    await help.evaluate(() => window.open('https://example.com/'))
+    await waitForApp({ app, what: 'the link opened in the browser', check: () => globalThis.openedLinks.length > 0 })
+    await delay(500)
+    assert.deepEqual(await app.evaluate(() => globalThis.openedLinks), ['https://about.me/jamesfurey'])
+    await help.keyboard.press('Escape').catch(() => null)
+    await waitForApp({ app, what: 'the help window closed', check: ({ BrowserWindow }) => BrowserWindow.getAllWindows().length === 1 })
+    assert.deepEqual(watch.errors, [])
+    assert.deepEqual(watch.requests.filter(url => !url.startsWith(APP_URL_PREFIX)), [])
+  })
+})
+
 const INIT_SCRIPT = () => {
   const noiseTest = { csp: [], analysers: [], contexts: new Set(), elements: new Set() }
   window.__noiseTest = noiseTest

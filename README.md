@@ -288,13 +288,15 @@ Screen readers get a **Play** button, a **Noise colour** slider, a **Volume** sl
 
 On a phone with rounded screen corners, the browser reports a safe area at the top or bottom of the screen. When it does, the app moves the timer and wave dots down to the third row, clear of the corners. It also lifts the colour strip by whole rows until it is clear of the home bar, with dim cells in the colours of the strip below it. On most iPhones, the strip moves up two rows. The app measures the safe area again after the page loads and after `500` ms, because some browsers report it late.
 
-On a Mac, the desktop app has no title bar. The timer and wave dots sit on the first row that starts at least `40` px from the top of the window, clear of the window buttons. That is the second row at the default size, and lower in small windows, where the blocks are smaller. `Cmd+W` closes the window and quits the app.
+On a Mac, the desktop app has no title bar. The timer and wave dots sit on the first row that starts at least `40` px from the top of the window, clear of the window buttons. That is the second row at the default size, and lower in small windows, where the blocks are smaller. `Cmd+W` in the main window closes it and quits the app.
 
 ### Desktop window
 
 The first time it opens, the window is `800` × `600`, centred on the screen under the mouse pointer. On a smaller screen, it fits the screen. You can make it as small as `280` × `220`, small enough for a corner of the screen. The grid of blocks changes to fit each size. While you resize the window, the grid fades out and only the background shows. When you stop, the grid fades back in, block by block, as it does at start-up. With a mouse or trackpad, the blocks shrink from `22` px to as small as `11` px as the window gets smaller, so a small window keeps about `20` rows. Touch screens keep blocks of at least `22` px, so a finger can still hit them.
 
 To keep the window above other windows, choose **View → Always on Top**. On Windows and Linux, press `Alt` to show the menu bar. The app remembers the size and position of the window, and the Always on Top setting.
+
+To see the controls and keys, choose **Help → Noise Help** (`Cmd+?` on a Mac, `F1` on Windows and Linux). The help window shows the same text as the comment at the top of `index.html`. Its logo sweeps through the five noise colours, and takes the colour of the sound while it plays. A click on a link opens it in your browser; the app opens only `https` links to `noise.furey.dev`, `github.com`, and `about.me`. `Esc` or `Cmd+W` closes the help window, and the sound keeps playing. With reduced motion turned on in the system settings, the help window does not animate.
 
 ### Background play
 

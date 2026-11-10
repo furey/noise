@@ -1,0 +1,91 @@
+:root {
+  --brown: #d69e2e;
+  --pink: #ed64a6;
+  --white: #e2e8f0;
+  --blue: #3b82f6;
+  --violet: #8b5cf6;
+  --text: #d4d4d4;
+  --dim: #6b6b6b;
+  --accent: var(--white);
+  --spectrum: linear-gradient(90deg, var(--brown), var(--pink), var(--white), var(--blue), var(--violet), var(--brown));
+}
+
+html, body {
+  margin: 0;
+  background: #050505;
+  color: var(--text);
+}
+
+#help {
+  margin: 0;
+  padding: 20px 24px 40px;
+  font: 12.5px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+#help ::selection { background: rgba(255, 255, 255, .19) }
+
+.heading { color: #fff; font-weight: 700; letter-spacing: .04em }
+.key { color: #fff }
+.dim { color: var(--dim) }
+
+.brown { color: var(--brown) }
+.pink { color: var(--pink) }
+.white { color: var(--white) }
+.blue { color: var(--blue) }
+.violet { color: var(--violet) }
+
+.logo, .strip {
+  background: var(--spectrum);
+  background-size: 500% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sweep 24s linear infinite;
+}
+
+.strip { animation-duration: 8s }
+
+body.playing .logo {
+  background: none;
+  color: var(--accent);
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.pulse { animation: blink 2.4s ease-in-out infinite }
+
+.sleep i { font-style: normal; animation: tick 8s steps(1) infinite }
+.sleep i:nth-child(1) { animation-delay: -6s }
+.sleep i:nth-child(2) { animation-delay: -4s }
+.sleep i:nth-child(3) { animation-delay: -2s }
+
+#wave { -webkit-user-select: none; user-select: none }
+
+a {
+  color: inherit;
+  text-decoration: underline dotted rgba(255, 255, 255, .33);
+  text-underline-offset: 3px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: color .15s, text-decoration-color .15s, background-color .15s;
+}
+
+a:hover {
+  color: var(--accent);
+  text-decoration: underline solid currentColor;
+  background: rgba(255, 255, 255, .05);
+}
+
+a:hover::after { content: " ↗" }
+a:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px }
+a:active { opacity: .7 }
+
+@keyframes sweep { to { background-position: 500% 0 } }
+@keyframes breathe { 50% { opacity: .55 } }
+@keyframes blink { 50% { color: #444 } }
+@keyframes tick { 0% { color: #fff } 75% { color: #333 } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::after { animation: none !important; transition: none !important }
+}

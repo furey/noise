@@ -49,5 +49,6 @@ export default defineConfig({
   build: {
     sourcemap: false,
     assetsInlineLimit: 0,
+    rollupOptions: { input: { index: 'index.html', help: 'help.html' } },
   },
 })
