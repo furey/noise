@@ -13,6 +13,8 @@ const fakeEngine = () => {
     },
     play: async () => engine.calls.push('play'),
     unlock: () => engine.calls.push('unlock'),
+    blocked: false,
+    isBlocked: () => engine.blocked,
     pause: () => engine.calls.push('pause'),
     halt: () => engine.calls.push('halt'),
     fadeOut: () => engine.calls.push('fade'),
@@ -129,4 +131,21 @@ test('wave mode schedules the sound two seconds ahead and replans only when the 
   assert.equal(plans().length, 2)
   app.dispose()
   mock.timers.reset()
+})
+
+test('a release that cannot start the sound shows the app as paused, so the next tap plays', () => {
+  const { app, engine } = start()
+  app.setPos(2)
+  app.setPlaying(true)
+  engine.blocked = true
+  app.pauseIfSilent()
+  assert.equal(app.state.playing, false)
+  assert.equal(engine.calls.at(-1), 'pause')
+})
+
+test('a release that started the sound leaves it playing', () => {
+  const { app } = start()
+  app.setPlaying(true)
+  app.pauseIfSilent()
+  assert.equal(app.state.playing, true)
 })

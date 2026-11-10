@@ -2,6 +2,8 @@ import { COLOURS, LAST } from './colours.js'
 import { columnCentreX, posAtX, synthHeight, zoneAt } from './grid.js'
 import { bindGestures } from './gestures.js'
 
+const SILENT_CHECK_MS = 600
+
 const ARROWS = {
   ArrowLeft: app => app.nudgePos(-1),
   ArrowRight: app => app.nudgePos(1),
@@ -40,6 +42,7 @@ const onPress = (controls, { zone, x }) => {
   controls.dragVolume = controls.app.state.volume
   controls.playingAtPress = controls.app.state.playing
   if (zone === 'colour') beginColourDrag(controls, x)
+  controls.app.unlockAudio()
 }
 
 const onDrag = (controls, drag) => {
@@ -57,6 +60,7 @@ const dragVolume = ({ app, layout, surface, dragVolume, playingAtPress }, { dy }
 
 const onRelease = (controls, { zone }) => {
   controls.app.unlockAudio()
+  setTimeout(() => controls.app.pauseIfSilent(), SILENT_CHECK_MS)
   if (zone === 'colour') return endColourDrag(controls)
   delete controls.surface.dataset.drag
 }

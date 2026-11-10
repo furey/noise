@@ -75,6 +75,7 @@ const draw = (view, frame) => {
   else drawRadial({ g: view.g, grid, radial, size, palette, ink })
   drawFlock({ g: view.g, grid, radial, chips, size, ink, playing: frame.playing })
   drawColourRows(view, frame.pos)
+  drawHomeBarRows(view, palette)
   drawTimer({ view, frame, palette, size })
   drawWaveDot({ view, frame, palette })
   const pixelCount = linear ? drawPixels({ view, frame, palette, size }) : 0
@@ -136,6 +137,14 @@ const drawColourRows = (view, pos) => {
     }
   }
   drawSelector({ g, grid, pos })
+}
+
+const drawHomeBarRows = (view, palette) => {
+  const { g, grid } = view
+  g.fillStyle = palette.ghost
+  for (let row = grid.colourTop + COLOUR_ROWS; row < grid.rows; row++) {
+    for (let col = 0; col < grid.cols; col++) fillCell(g, grid, col, row)
+  }
 }
 
 const drawSelector = ({ g, grid, pos }) => {

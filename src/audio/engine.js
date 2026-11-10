@@ -22,6 +22,7 @@ export const createEngine = () => {
     prepare: () => prepare(engine),
     play: () => play(engine),
     unlock: () => unlock(engine),
+    isBlocked: () => isBlocked(engine),
     pause: () => pause(engine),
     halt: () => halt(engine),
     fadeOut: seconds => fadeOut(engine, seconds),
@@ -59,6 +60,8 @@ const unlock = engine => {
   engine.ctx.resume().catch(() => {})
   engine.element?.play().catch(() => {})
 }
+
+const isBlocked = engine => engine.wanted && !engine.live && engine.ctx?.state === 'suspended' && Boolean(engine.noise)
 
 const pause = engine => {
   engine.wanted = false

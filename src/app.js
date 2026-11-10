@@ -26,6 +26,7 @@ export const createApp = ({ engine, settings, persist }) => {
     togglePlay: () => setPlaying(app, !app.state.playing),
     setPlaying: on => setPlaying(app, on),
     unlockAudio: () => unlockAudio(app),
+    pauseIfSilent: () => pauseIfSilent(app),
     halt: () => halt(app),
     setPos: pos => choosePos(app, pos),
     nudgePos: steps => choosePos(app, app.state.pos + steps * POS_STEP),
@@ -61,6 +62,10 @@ const setPlaying = (app, on) => {
 
 const unlockAudio = app => {
   if (app.state.playing) app.engine.unlock()
+}
+
+const pauseIfSilent = app => {
+  if (app.state.playing && app.engine.isBlocked()) setPlaying(app, false)
 }
 
 const halt = app => {
