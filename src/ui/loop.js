@@ -1,9 +1,11 @@
 const MAX_DT_S = 0.05
-const FRAME_MS = 1000 / 30
-const VSYNC_MARGIN_MS = 8
+const VSYNC_MARGIN_MS = 6
+const LOW_POWER_CORES = 4
 
-export const createFrameLoop = ({ draw, doc = document }) => {
-  const loop = { draw, doc, id: 0, timer: 0, last: 0, tick: null }
+export const pickFrameRate = cores => cores && cores <= LOW_POWER_CORES ? 30 : 60
+
+export const createFrameLoop = ({ draw, doc = document, fps = 60 }) => {
+  const loop = { draw, doc, id: 0, timer: 0, last: 0, tick: null, gapMs: 1000 / fps - VSYNC_MARGIN_MS }
   loop.tick = now => frame(loop, now)
   const onVisibility = () => doc.hidden ? sleep(loop) : wake(loop)
   doc.addEventListener('visibilitychange', onVisibility)
@@ -37,7 +39,7 @@ const requestNextFrame = loop => {
   loop.timer = setTimeout(() => {
     loop.timer = 0
     request(loop)
-  }, FRAME_MS - VSYNC_MARGIN_MS)
+  }, loop.gapMs)
 }
 
 const frame = (loop, now) => {

@@ -3,7 +3,7 @@ import { createApp } from './app.js'
 import { loadSettings, saveSettings } from './settings.js'
 import { bindControls } from './ui/controls.js'
 import { measureGrid } from './ui/grid.js'
-import { createFrameLoop } from './ui/loop.js'
+import { createFrameLoop, pickFrameRate } from './ui/loop.js'
 import { bindMediaSession } from './ui/media.js'
 import { createSynth } from './ui/synth.js'
 import { createView } from './ui/view.js'
@@ -23,6 +23,7 @@ const start = () => {
   const layout = { grid: null, stripLocked: matchMedia('(pointer: coarse)').matches }
   const frame = { stripLocked: false, dt: 0, now: 0, playing: false, pos: 0, volume: 0, timer: null, wave: false, analyser: null, sampleRate: 48000, reducedMotion: false }
   const loop = createFrameLoop({
+    fps: pickFrameRate(navigator.hardwareConcurrency),
     draw: (dt, now) => synth.draw(fillFrame({ frame, dt, now, state: app.state, engine, reducedMotion, layout })),
   })
   const relayout = () => {
