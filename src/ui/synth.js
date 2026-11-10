@@ -2,7 +2,7 @@ import { COLOUR_ROW_SHADES, LAST, LIGHT_INK, colourAt, inkRgb, isDarkInk, palett
 import { COLOUR_ROWS, fillCell, isReserved, waveCol } from './grid.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
 import { createRadial, drawFlock, drawRadial, isRadialSettled, linearShare, stepRadial } from './radial.js'
-import { advanceIntro, cellReveal, createIntro, isIntroDone, INTRO_STEPS } from './intro.js'
+import { advanceIntro, cellReveal, createIntro, isIntroDone, INTRO_HOLD_MS, INTRO_STEPS } from './intro.js'
 import { createStrip, stepStrip, stripCellAlpha } from './strip.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
@@ -39,7 +39,14 @@ export const createSynth = ({ spec, fx }) => {
   return {
     resize: grid => resize(view, grid),
     draw: frame => draw(view, frame),
+    replayIntro: () => replayIntro(view),
   }
+}
+
+const replayIntro = view => {
+  if (!view.grid) return
+  view.introDone = false
+  view.intro = { ...createIntro({ cols: view.grid.cols, rows: view.grid.rows }), elapsed: INTRO_HOLD_MS }
 }
 
 const resize = (view, grid) => {

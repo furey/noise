@@ -12,6 +12,7 @@ const MAX_DPR = 2
 const LATE_INSETS_MS = 500
 const MAX_BACKING_PIXELS = 3840 * 2160
 const MAX_HOME_BAR_GAP_PX = 60
+const RESIZE_SETTLE_MS = 250
 
 const start = () => {
   markDesktop()
@@ -36,7 +37,11 @@ const start = () => {
   const syncPlayback = bindMediaSession({ play: () => app.setPlaying(true), pause: () => app.setPlaying(false) })
   const scheduleRelayout = oncePerFrame(relayout)
   relayout()
-  addEventListener('resize', scheduleRelayout)
+  addEventListener('resize', hideWhileResizing(() => {
+    relayout()
+    synth.replayIntro()
+    loop.wake()
+  }))
   addEventListener('load', scheduleRelayout)
   setTimeout(scheduleRelayout, LATE_INSETS_MS)
   watchPixelRatio(scheduleRelayout)
@@ -51,6 +56,19 @@ const start = () => {
     loop.wake()
   })
   registerServiceWorker()
+}
+
+const hideWhileResizing = onSettle => {
+  const root = document.documentElement
+  let settleTimer = 0
+  return () => {
+    root.classList.add('resizing')
+    clearTimeout(settleTimer)
+    settleTimer = setTimeout(() => {
+      onSettle()
+      requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('resizing')))
+    }, RESIZE_SETTLE_MS)
+  }
 }
 
 const prepareAudio = engine => engine.prepare().catch(() => {})

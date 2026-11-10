@@ -31,6 +31,8 @@ html, body {
 
 #fx { pointer-events: none }
 
+.resizing #spec, .resizing #fx { opacity: 0; transition: opacity .12s ease }
+
 .layer { opacity: 0; transition: opacity var(--blend, .6s) ease }
 
 .wave .layer { transition: none }

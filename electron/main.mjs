@@ -43,6 +43,7 @@ const start = () => {
   state.windowState = createWindowState({
     folder: app.getPath('userData'),
     displays: () => screen.getAllDisplays().map(display => display.workArea),
+    pointerArea: () => screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea,
   })
   state.window = createWindow()
 }

@@ -1,22 +1,22 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-export const DEFAULT_BOUNDS = Object.freeze({ width: 960, height: 600 })
+export const DEFAULT_BOUNDS = Object.freeze({ width: 800, height: 600 })
 export const MIN_SIZE = Object.freeze({ width: 280, height: 220 })
 
 const TITLE_BAR_PX = 32
 const MIN_VISIBLE_PX = 48
 
-export const createWindowState = ({ folder, displays }) => {
+export const createWindowState = ({ folder, displays, pointerArea }) => {
   const filePath = path.join(folder, 'window-state.json')
   return {
-    load: () => usableState({ saved: readJson(filePath), displays: displays() }),
+    load: () => usableState({ saved: readJson(filePath), displays: displays(), pointerArea: pointerArea?.() }),
     save: state => writeJsonAtomically({ filePath, value: state }),
   }
 }
 
-export const usableState = ({ saved, displays }) => {
-  if (!isPlainObject(saved)) return { ...DEFAULT_BOUNDS, maximized: false, alwaysOnTop: false }
+export const usableState = ({ saved, displays, pointerArea = largestOf(displays) }) => {
+  if (!isPlainObject(saved)) return { ...centredIn(DEFAULT_BOUNDS, pointerArea), maximized: false, alwaysOnTop: false }
   const width = sizeOr(saved.width, { min: MIN_SIZE.width, fallback: DEFAULT_BOUNDS.width })
   const height = sizeOr(saved.height, { min: MIN_SIZE.height, fallback: DEFAULT_BOUNDS.height })
   const maximized = saved.maximized === true
@@ -25,7 +25,13 @@ export const usableState = ({ saved, displays }) => {
   const bounds = { x: saved.x, y: saved.y, width, height }
   const area = placed && displays.find(display => showsTitleBar(bounds, display))
   if (area) return { ...bounds, ...fitSize(bounds, area), maximized, alwaysOnTop }
-  return { ...fitSize(bounds, largestOf(displays)), maximized, alwaysOnTop }
+  return { ...centredIn({ width, height }, pointerArea), maximized, alwaysOnTop }
+}
+
+const centredIn = (size, area) => {
+  if (!area) return { ...size }
+  const { width, height } = fitSize(size, area)
+  return { x: area.x + Math.round((area.width - width) / 2), y: area.y + Math.round((area.height - height) / 2), width, height }
 }
 
 const sizeOr = (value, { min, fallback }) =>
