@@ -28,7 +28,7 @@ export const bindControls = ({ app, doc, layout }) => {
 
 const bindSurface = controls => bindGestures({
   surface: controls.surface,
-  zoneAt: y => zoneAt(controls.layout.grid, y),
+  zoneAt: y => controls.layout.stripLocked ? 'synth' : zoneAt(controls.layout.grid, y),
   onPress: press => onPress(controls, press),
   onDrag: drag => onDrag(controls, drag),
   onRelease: press => onRelease(controls, press),

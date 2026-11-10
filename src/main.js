@@ -20,10 +20,10 @@ const start = () => {
   const view = createView(document)
   const synth = createSynth({ spec: $('spec'), fx: $('fx') })
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
-  const layout = { grid: null }
-  const frame = { dt: 0, now: 0, playing: false, pos: 0, volume: 0, timer: null, wave: false, analyser: null, sampleRate: 48000, reducedMotion: false }
+  const layout = { grid: null, stripLocked: matchMedia('(pointer: coarse)').matches }
+  const frame = { stripLocked: false, dt: 0, now: 0, playing: false, pos: 0, volume: 0, timer: null, wave: false, analyser: null, sampleRate: 48000, reducedMotion: false }
   const loop = createFrameLoop({
-    draw: (dt, now) => synth.draw(fillFrame({ frame, dt, now, state: app.state, engine, reducedMotion })),
+    draw: (dt, now) => synth.draw(fillFrame({ frame, dt, now, state: app.state, engine, reducedMotion, layout })),
   })
   const relayout = () => {
     coverHomeBarGap()
@@ -44,6 +44,7 @@ const start = () => {
   requestAnimationFrame(() => setTimeout(() => prepareAudio(engine)))
   bindControls({ app, doc: document, layout })
   app.subscribe(state => {
+    if (state.playing) layout.stripLocked = false
     view.render(state)
     syncPlayback(state.playing)
     loop.wake()
@@ -53,7 +54,8 @@ const start = () => {
 
 const prepareAudio = engine => engine.prepare().catch(() => {})
 
-const fillFrame = ({ frame, dt, now, state, engine, reducedMotion }) => {
+const fillFrame = ({ frame, dt, now, state, engine, reducedMotion, layout }) => {
+  frame.stripLocked = layout.stripLocked
   frame.dt = dt
   frame.now = now
   frame.playing = state.playing

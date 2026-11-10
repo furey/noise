@@ -186,6 +186,8 @@ The screen has two parts: the synth, which fills most of the screen, and the col
 
 When the app opens, the grid stays black for `300` ms, then the blocks fade in over about `0.8` seconds. Each launch picks a pattern at random: scattered, up, down, left, right, out from the centre, or in from the edges. If your device asks for reduced motion, the grid shows at once.
 
+On a touch screen, the colour strip stays hidden until the first tap. Phone browsers start sound only on a tap, not at the end of a drag, so the first touch must be a tap. The strip then rises into view, bottom row first.
+
 With a mouse, the pointer shows what a click or drag does: a hand on the synth while the sound is stopped, up and down arrows on the synth while it plays, and left and right arrows on the colour strip.
 
 The desktop app:

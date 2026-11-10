@@ -3,6 +3,7 @@ import { COLOUR_ROWS, fillCell, isReserved, waveCol } from './grid.js'
 import { chipSegment, reassignChips, stepChips } from './chips.js'
 import { createRadial, drawFlock, drawRadial, isRadialSettled, linearShare, stepRadial } from './radial.js'
 import { advanceIntro, cellReveal, createIntro, isIntroDone, INTRO_STEPS } from './intro.js'
+import { createStrip, stepStrip, stripCellAlpha } from './strip.js'
 import { clearPixels, createPixels, emitPixels, pixelAlpha, stepPixels } from './pixels.js'
 import { createSpectrum, decaySpectrum, readSpectrum, resizeSpectrum } from './spectrum.js'
 import { TIMER_BLINK_LOW, TIMER_OFF_ALPHA, timerAlpha, timerSize } from './timer.js'
@@ -32,6 +33,7 @@ export const createSynth = ({ spec, fx }) => {
     inks: buildInks(),
     intro: null,
     introDone: false,
+    strip: createStrip({ locked: false }),
   }
   return {
     resize: grid => resize(view, grid),
@@ -63,6 +65,7 @@ const draw = (view, frame) => {
   }
   stepChips({ chips, levels: view.spectrum.levels, dt: frame.dt, segments: grid.synthRows, reducedMotion: frame.reducedMotion })
   const tintSettled = stepTint(view, frame)
+  const stripRevealing = stepStrip({ strip: view.strip, locked: frame.stripLocked, cols: grid.cols, dt: frame.dt, reducedMotion: frame.reducedMotion })
   const palette = paletteFor(frame)
   const size = timerSize(frame.timer)
   const { radial } = view
@@ -74,14 +77,14 @@ const draw = (view, frame) => {
   if (linear) drawChips(view, size)
   else drawRadial({ g: view.g, grid, radial, size, palette, ink })
   drawFlock({ g: view.g, grid, radial, chips, size, ink, playing: frame.playing })
-  drawColourRows(view, frame.pos)
+  drawColourRows(view, frame.pos, palette)
   drawHomeBarRows(view, palette)
   drawTimer({ view, frame, palette, size })
   drawWaveDot({ view, frame, palette })
   const pixelCount = linear ? drawPixels({ view, frame, palette, size }) : 0
   if (!linear) hidePixels(view)
   const introRunning = maskIntro(view, frame)
-  return introRunning || !isRadialSettled(radial) || (radial.morph > 0 && radial.morph < 1) || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
+  return introRunning || stripRevealing || !isRadialSettled(radial) || (radial.morph > 0 && radial.morph < 1) || frame.playing || levelsActive || chips.length > 0 || pixelCount > 0 || !tintSettled
 }
 
 const isLinearEmpty = ({ spectrum, chips }) => spectrum.levels.every(level => level < 0.02) && chips.every(chip => chip.y <= 0)
@@ -128,15 +131,23 @@ const drawChips = (view, size) => {
   }
 }
 
-const drawColourRows = (view, pos) => {
-  const { g, grid, rowFills } = view
+const drawColourRows = (view, pos, palette) => {
+  const { g, grid, rowFills, strip } = view
+  const selector = selectorSpan(grid, pos)
   for (let k = 0; k < COLOUR_ROWS; k++) {
     for (let col = 0; col < grid.cols; col++) {
-      g.fillStyle = rowFills[k][col]
+      const alpha = stripCellAlpha({ strip, col, k })
+      if (alpha < 1) {
+        g.fillStyle = palette.ghost
+        fillCell(g, grid, col, grid.colourTop + k)
+      }
+      if (!alpha) continue
+      g.globalAlpha = alpha
+      g.fillStyle = col >= selector.from && col <= selector.to ? SELECTOR_FILL : rowFills[k][col]
       fillCell(g, grid, col, grid.colourTop + k)
     }
   }
-  drawSelector({ g, grid, pos })
+  g.globalAlpha = 1
 }
 
 const drawHomeBarRows = (view, palette) => {
@@ -147,13 +158,10 @@ const drawHomeBarRows = (view, palette) => {
   }
 }
 
-const drawSelector = ({ g, grid, pos }) => {
+const selectorSpan = (grid, pos) => {
   const centre = Math.round(pos / LAST * (grid.cols - 1))
   const clamped = Math.max(SELECTOR_HALF, Math.min(grid.cols - 1 - SELECTOR_HALF, centre))
-  g.fillStyle = SELECTOR_FILL
-  for (let col = clamped - SELECTOR_HALF; col <= clamped + SELECTOR_HALF; col++) {
-    for (let k = 0; k < COLOUR_ROWS; k++) fillCell(g, grid, col, grid.colourTop + k)
-  }
+  return { from: clamped - SELECTOR_HALF, to: clamped + SELECTOR_HALF }
 }
 
 const drawWaveDot = ({ view, frame, palette }) => {
