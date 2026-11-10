@@ -52,6 +52,7 @@ const subscribe = (app, listener) => {
 
 const setPlaying = (app, on) => {
   const { state, engine } = app
+  if (!on && state.wave) stopWave(app)
   state.playing = on
   state.timer = unfade(state.timer)
   syncClock(app)

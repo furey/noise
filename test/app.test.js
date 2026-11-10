@@ -179,3 +179,13 @@ test('another control used during wave mode keeps the sound on when wave mode en
   assert.equal(app.state.playing, true)
   app.dispose()
 })
+
+test('pausing during wave mode ends wave mode', () => {
+  const { app } = start()
+  app.setPlaying(true)
+  app.toggleWave()
+  app.togglePlay()
+  assert.equal(app.state.playing, false)
+  assert.equal(app.state.wave, false)
+  app.dispose()
+})

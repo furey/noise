@@ -219,7 +219,7 @@ The timer counts down only while the sound plays. In the last minute, the sound 
 
 ### Wave mode
 
-The dot in the top-left corner turns wave mode on and off. The dot is white while wave mode is on, and dim while it is off. A tap on the dot is the only way to turn wave mode on; `Esc` also turns it off.
+The dot in the top-left corner turns wave mode on and off. The dot is white while wave mode is on, and dim while it is off. A tap on the dot is the only way to turn wave mode on. `Esc`, a pause, and the end of the sleep timer also turn it off.
 
 If the sound was off when you turned wave mode on, and you touched nothing else, turning wave mode off also stops the sound. If the sound was already playing, or you changed the colour, volume, timer, or play state during wave mode, the sound carries on.
 
