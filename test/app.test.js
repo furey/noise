@@ -149,3 +149,33 @@ test('a release that started the sound leaves it playing', () => {
   app.pauseIfSilent()
   assert.equal(app.state.playing, true)
 })
+
+test('wave mode started from silence ends in silence', () => {
+  const { app } = start()
+  app.toggleWave()
+  assert.equal(app.state.playing, true)
+  app.toggleWave()
+  assert.equal(app.state.wave, false)
+  assert.equal(app.state.playing, false)
+  app.dispose()
+})
+
+test('wave mode started while playing ends in normal play', () => {
+  const { app } = start()
+  app.setPlaying(true)
+  app.toggleWave()
+  app.toggleWave()
+  assert.equal(app.state.wave, false)
+  assert.equal(app.state.playing, true)
+  app.dispose()
+})
+
+test('another control used during wave mode keeps the sound on when wave mode ends', () => {
+  const { app } = start()
+  app.toggleWave()
+  app.setPos(2)
+  app.toggleWave()
+  assert.equal(app.state.wave, false)
+  assert.equal(app.state.playing, true)
+  app.dispose()
+})

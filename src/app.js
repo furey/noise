@@ -16,6 +16,7 @@ export const createApp = ({ engine, settings, persist }) => {
     listeners: new Set(),
     clock: { id: 0, last: 0 },
     tide: { id: 0, wave: null, seconds: 0, last: 0, plan: null },
+    waveFromSilence: false,
   }
   engine.setPosition(app.state.pos)
   engine.setVolume(app.state.volume)
@@ -23,19 +24,19 @@ export const createApp = ({ engine, settings, persist }) => {
   return {
     state: app.state,
     subscribe: listener => subscribe(app, listener),
-    togglePlay: () => setPlaying(app, !app.state.playing),
-    setPlaying: on => setPlaying(app, on),
+    togglePlay: () => interact(app, () => setPlaying(app, !app.state.playing)),
+    setPlaying: on => interact(app, () => setPlaying(app, on)),
     unlockAudio: () => unlockAudio(app),
     pauseIfSilent: () => pauseIfSilent(app),
     halt: () => halt(app),
-    setPos: pos => choosePos(app, pos),
-    nudgePos: steps => choosePos(app, app.state.pos + steps * POS_STEP),
-    toggleWave: () => app.state.wave ? stopWave(app) : startWave(app),
+    setPos: pos => interact(app, () => choosePos(app, pos)),
+    nudgePos: steps => interact(app, () => choosePos(app, app.state.pos + steps * POS_STEP)),
+    toggleWave: () => app.state.wave ? endWave(app) : startWave(app),
     stop: () => stop(app),
-    setVolume: volume => setVolume(app, volume),
-    nudgeVolume: steps => setVolume(app, app.state.volume + steps * VOLUME_STEP),
-    selectColour: index => selectColour(app, index),
-    cycleTimer: () => advanceTimer(app),
+    setVolume: volume => interact(app, () => setVolume(app, volume)),
+    nudgeVolume: steps => interact(app, () => setVolume(app, app.state.volume + steps * VOLUME_STEP)),
+    selectColour: index => interact(app, () => selectColour(app, index)),
+    cycleTimer: () => interact(app, () => advanceTimer(app)),
     dispose: () => {
       stopClock(app)
       stopTide(app)
@@ -148,8 +149,14 @@ const stopClock = app => {
   app.clock.id = 0
 }
 
+const interact = (app, action) => {
+  app.waveFromSilence = false
+  action()
+}
+
 const startWave = app => {
   const { state, tide } = app
+  app.waveFromSilence = !state.playing
   state.wave = true
   restartTide(app, { quick: true })
   tide.id = setInterval(() => flowTide(app), WAVE_TICK_MS)
@@ -159,6 +166,12 @@ const startWave = app => {
 
 const restartTide = (app, { quick = false } = {}) => {
   Object.assign(app.tide, { wave: createWave({ from: app.state.pos, quick }), seconds: 0, last: performance.now() })
+}
+
+const endWave = app => {
+  const silenceAfter = app.waveFromSilence
+  stopWave(app)
+  if (silenceAfter && app.state.playing) setPlaying(app, false)
 }
 
 const stopWave = app => {

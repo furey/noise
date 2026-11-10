@@ -221,6 +221,8 @@ The timer counts down only while the sound plays. In the last minute, the sound 
 
 The dot in the top-left corner turns wave mode on and off. The dot is white while wave mode is on, and dim while it is off. A tap on the dot is the only way to turn wave mode on; `Esc` also turns it off.
 
+If the sound was off when you turned wave mode on, and you touched nothing else, turning wave mode off also stops the sound. If the sound was already playing, or you changed the colour, volume, timer, or play state during wave mode, the sound carries on.
+
 In wave mode, the colour slides to brown. Then the noise rises and falls like waves on a beach:
 
 1. The colour rises from brown to a crest between pink and blue, most often near pink. The volume swells a little at the same time.
