@@ -137,7 +137,8 @@ const lockDownSession = target => {
 }
 
 const buildMenu = () => Menu.buildFromTemplate([
-  ...(isMac ? [{ role: 'appMenu' }] : [{ role: 'fileMenu' }]),
+  ...(isMac ? [{ role: 'appMenu' }] : []),
+  { role: 'fileMenu' },
   { role: 'editMenu' },
   { label: 'View', submenu: [
     { id: ALWAYS_ON_TOP_ID, label: 'Always on Top', type: 'checkbox', click: setAlwaysOnTop },
