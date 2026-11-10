@@ -246,7 +246,7 @@ Screen readers get a **Play** button, a **Noise colour** slider, a **Volume** sl
 
 ### Rounded screens
 
-On a phone with rounded screen corners, the browser reports a safe area at the top or bottom of the screen. When it does, the app moves the timer and wave dots down to the third row, clear of the corners. It also lifts the colour strip by whole rows until it is clear of the home bar, with empty grid cells below it. On most iPhones, the strip moves up two rows. The app measures the safe area again after the page loads and after `500` ms, because some browsers report it late.
+On a phone with rounded screen corners, the browser reports a safe area at the top or bottom of the screen. When it does, the app moves the timer and wave dots down to the third row, clear of the corners. It also lifts the colour strip by whole rows until it is clear of the home bar, with dim cells in the colours of the strip below it. On most iPhones, the strip moves up two rows. The app measures the safe area again after the page loads and after `500` ms, because some browsers report it late.
 
 On a Mac, the desktop app has no title bar, so the timer and wave dots also sit on the third row, clear of the window buttons.
 

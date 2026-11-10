@@ -12,6 +12,7 @@ const INK_TINT_S = 0.4
 const INK_STEPS = 20
 const INK_ALPHAS = [1, TIMER_BLINK_LOW, TIMER_OFF_ALPHA]
 const SELECTOR_HALF = 1
+const HOME_BAR_ALPHA = 0.3
 const SELECTOR_FILL = rgba(LIGHT_INK, 1)
 const HIDE_STYLES = Array.from({ length: INTRO_STEPS + 1 }, (_, step) => rgba([0, 0, 0], 1 - step / INTRO_STEPS))
 
@@ -151,10 +152,17 @@ const drawColourRows = (view, pos, palette) => {
 }
 
 const drawHomeBarRows = (view, palette) => {
-  const { g, grid } = view
-  g.fillStyle = palette.ghost
+  const { g, grid, rowFills, strip } = view
+  const bottomShade = rowFills[COLOUR_ROWS - 1]
   for (let row = grid.colourTop + COLOUR_ROWS; row < grid.rows; row++) {
-    for (let col = 0; col < grid.cols; col++) fillCell(g, grid, col, row)
+    for (let col = 0; col < grid.cols; col++) {
+      g.fillStyle = palette.ghost
+      fillCell(g, grid, col, row)
+      g.globalAlpha = HOME_BAR_ALPHA * stripCellAlpha({ strip, col, k: COLOUR_ROWS - 1 })
+      g.fillStyle = bottomShade[col]
+      fillCell(g, grid, col, row)
+      g.globalAlpha = 1
+    }
   }
 }
 
