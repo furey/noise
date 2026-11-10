@@ -2,6 +2,7 @@ import { createEngine } from './audio/engine.js'
 import { createApp } from './app.js'
 import { loadSettings, saveSettings } from './settings.js'
 import { bindControls } from './ui/controls.js'
+import { ignoreFocusClicks } from './ui/focus-click.js'
 import { measureGrid } from './ui/grid.js'
 import { createFrameLoop, pickFrameRate } from './ui/loop.js'
 import { bindMediaSession } from './ui/media.js'
@@ -143,6 +144,7 @@ const markDesktop = () => {
   root.classList.add('desktop')
   if (!isMac()) return
   root.classList.add('mac')
+  ignoreFocusClicks(window)
   const strip = document.createElement('div')
   strip.className = 'titlebar'
   strip.setAttribute('aria-hidden', 'true')

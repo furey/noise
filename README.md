@@ -281,6 +281,7 @@ The synth changes shape in wave mode. The bars point out from the centre of the 
 | `←` / `→` | Move the colour a quarter step down or up |
 | `↑` / `↓` | Turn the volume up or down by `5%`        |
 | `T`       | Move the timer to the next setting        |
+| `?`       | Open the help page                        |
 
 Screen readers get a **Play** button, a **Noise colour** slider, a **Volume** slider, a **Wave mode** button, and the timer button.
 
@@ -296,7 +297,9 @@ The first time it opens, the window is `800` × `600`, centred on the screen und
 
 To keep the window above other windows, choose **View → Always on Top**. On Windows and Linux, press `Alt` to show the menu bar. The app remembers the size and position of the window, and the Always on Top setting.
 
-To see the controls and keys, choose **Help → Noise Help** (`Cmd+?` on a Mac, `F1` on Windows and Linux). The help window shows the same text as the comment at the top of `index.html`. Its logo sweeps through the five noise colours, and takes the colour of the sound while it plays. A click on a link opens it in your browser; the app opens only `https` links to `noise.furey.dev`, `github.com`, and `about.me`. `Esc` or `Cmd+W` closes the help window, and the sound keeps playing. With reduced motion turned on in the system settings, the help window does not animate.
+To see the controls and keys, press `?`, or choose **Help → Noise Help** (`Cmd+?` on a Mac, `F1` on Windows and Linux). The help window opens over the middle of the main window, and you can move each window on its own. With Always on Top on, the help window also stays above other windows. The help window shows the same text as the comment at the top of `index.html`. Its logo sweeps through the five noise colours, and takes the colour of the sound while it plays. A click on a link opens it in your browser; the app opens only `https` links to `noise.furey.dev`, `github.com`, and `about.me`. `Esc` or `Cmd+W` closes the help window, and the sound keeps playing. With reduced motion turned on in the system settings, the help window does not animate. In the web app, `?` opens the help page in a new tab.
+
+On a Mac, a click on the window while another app is active only brings Noise to the front. The click does not play, pause, or change the colour. macOS does this for most windows, but not for a window that is always on top, so the app ignores a press that comes within `150` ms of the window getting focus.
 
 ### Background play
 

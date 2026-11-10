@@ -86,6 +86,7 @@ const createWindow = () => {
     state.window = null
     state.help?.close()
   })
+  window.webContents.setWindowOpenHandler(({ url }) => openFromPage(url))
   window.loadURL(PAGE_URL).catch(() => null)
   return window
 }
@@ -96,11 +97,10 @@ const openHelp = () => {
 }
 
 const createHelpWindow = () => {
-  const parent = state.window && !state.window.isDestroyed() ? state.window : undefined
   const help = new BrowserWindow({
     ...HELP_SIZE,
-    ...(parent ? {} : { center: true }),
-    parent,
+    ...helpPosition(),
+    alwaysOnTop: Boolean(state.window?.isAlwaysOnTop()),
     minWidth: HELP_MIN_SIZE.width,
     minHeight: HELP_MIN_SIZE.height,
     title: 'Noise Help',
@@ -118,6 +118,27 @@ const createHelpWindow = () => {
   help.loadURL(`${HELP_URL}?v=${encodeURIComponent(app.getVersion())}`).catch(() => null)
   return help
 }
+
+const helpPosition = () => {
+  if (!state.window || state.window.isDestroyed()) return { center: true }
+  const main = state.window.getBounds()
+  const area = screen.getDisplayMatching(main).workArea
+  const x = main.x + Math.round((main.width - HELP_SIZE.width) / 2)
+  const y = main.y + Math.round((main.height - HELP_SIZE.height) / 2)
+  return {
+    x: clamp(x, area.x, area.x + area.width - HELP_SIZE.width),
+    y: clamp(y, area.y, area.y + area.height - HELP_SIZE.height),
+  }
+}
+
+const clamp = (value, min, max) => Math.max(min, Math.min(value, max))
+
+const openFromPage = url => {
+  if (isHelpUrl(url)) openHelp()
+  return { action: 'deny' }
+}
+
+const isHelpUrl = url => isAppUrl(url) && new URL(url).pathname === '/help.html'
 
 const openExternalLink = url => {
   if (isExternalLink(url)) shell.openExternal(url).catch(() => null)
@@ -147,6 +168,7 @@ const rememberBounds = window => {
 const setAlwaysOnTop = ({ checked }) => {
   if (!state.window || state.window.isDestroyed()) return
   state.window.setAlwaysOnTop(checked)
+  if (state.help && !state.help.isDestroyed()) state.help.setAlwaysOnTop(checked)
   rememberBounds(state.window)
 }
 

@@ -130,6 +130,7 @@ test('Help → Noise Help opens one help window whose links open in the browser'
     await delay(500)
     assert.equal(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length), 2)
     assert.equal(await help.title(), 'Noise Help')
+    assert.equal(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().every(window => !window.getParentWindow())), true)
     assert.match(await help.textContent('#help'), /NOISE \d+\.\d+\.\d+/)
     await help.click('a[href="https://about.me/jamesfurey"]')
     await help.evaluate(() => window.open('https://example.com/'))
@@ -140,6 +141,17 @@ test('Help → Noise Help opens one help window whose links open in the browser'
     await waitForApp({ app, what: 'the help window closed', check: ({ BrowserWindow }) => BrowserWindow.getAllWindows().length === 1 })
     assert.deepEqual(watch.errors, [])
     assert.deepEqual(watch.requests.filter(url => !url.startsWith(APP_URL_PREFIX)), [])
+  })
+})
+
+test('the ? key opens the help window', { timeout: TEST_TIMEOUT_MS }, async () => {
+  await withApp(async ({ app, page, watch }) => {
+    const opened = app.waitForEvent('window')
+    await page.keyboard.press('Shift+Slash')
+    const help = await opened
+    await help.waitForSelector('#help a')
+    assert.ok(help.url().startsWith(`${APP_URL_PREFIX}help.html`), help.url())
+    assert.deepEqual(watch.errors, [])
   })
 })
 

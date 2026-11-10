@@ -3,6 +3,8 @@ import { columnCentreX, posAtX, synthHeight, zoneAt } from './grid.js'
 import { bindGestures } from './gestures.js'
 
 const SILENT_CHECK_MS = 600
+const HELP_PAGE = 'help.html'
+const HELP_TARGET = 'noise-help'
 
 const ARROWS = {
   ArrowLeft: app => app.nudgePos(-1),
@@ -82,7 +84,7 @@ const endColourDrag = ({ doc, surface }) => {
   doc.documentElement.style.removeProperty('--blend')
 }
 
-const onKey = ({ app }, e) => {
+const onKey = ({ app, doc }, e) => {
   if (e.target.closest?.('input') || e.metaKey || e.ctrlKey || e.altKey) return
   if (e.key === 'Escape') return app.stop()
   const digit = Number(e.key)
@@ -92,11 +94,14 @@ const onKey = ({ app }, e) => {
     return app.togglePlay()
   }
   if (e.key === 't' || e.key === 'T') return app.cycleTimer()
+  if (e.key === '?') return openHelp(doc)
   const arrow = ARROWS[e.key]
   if (!arrow) return
   e.preventDefault()
   arrow(app)
 }
+
+const openHelp = doc => doc.defaultView.open(HELP_PAGE, HELP_TARGET)
 
 const listen = (target, type, listener) => {
   target.addEventListener(type, listener)
