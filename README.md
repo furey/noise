@@ -308,7 +308,7 @@ In wave mode, the app gives the browser the next `2` seconds of the wave ahead o
 
 ## Privacy
 
-- **No network**: after the page loads, Noise makes no network requests. The desktop app blocks all network requests.
+- **No network**: after the page loads, Noise makes no network requests. The desktop app blocks all network requests. A link in the help window opens in your browser, and only when you click it.
 - **No accounts**: there is nothing to sign up for and no tracking.
 - **Local storage**: the app keeps only your colour and volume, in the browser's `localStorage`. The desktop app also keeps the size and position of its window, and the Always on Top setting.
 
@@ -369,6 +369,8 @@ flowchart LR
 
 The desktop app does not load files from disk directly. [`electron/main.mjs`](./electron/main.mjs) serves the built `dist` folder over a private `app://` address, and blocks every `http`, `https`, `ws`, and `file` request. The window runs in Electron's sandbox, and the app refuses every permission request.
 
+The help window loads [`help.html`](./help.html). [`src/help/render.js`](./src/help/render.js) reads the comment at the top of `index.html`, then adds the colours and the links. The main window sends whether the sound plays, and its colour, over a `BroadcastChannel`. A click on a link goes to the main process, which opens it in the browser only when [`electron/links.mjs`](./electron/links.mjs) lists its host.
+
 ### Demo media
 
 The scripts in [`scripts`](./scripts) make the pictures and videos in this README. They write to `docs/media`, and need Google Chrome and `ffmpeg`. Set `CHROME_PATH` if Chrome is not in `/Applications`.
@@ -395,7 +397,7 @@ Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the vide
 
 [`build.yml`](./.github/workflows/build.yml) runs on a push to `main` or `develop`, a version tag, a pull request, or by hand. On macOS, Windows, and Ubuntu runners it runs `npm run lint`, `npm test`, and `npm run test:e2e` (under `xvfb` on Ubuntu), then builds the app with `electron-builder`. On Windows, it also installs the app and checks that the window opens. The builds are kept as workflow artefacts.
 
-For a pushed version tag (e.g. `1.0.0`), a second job waits up to 30 minutes for the GitHub release of that tag. It then attaches the six files in [Download](#download) to the release, and no others. Only that job can write to the repository.
+For a pushed version tag (e.g. `1.0.0`), a second job waits up to 30 minutes for the GitHub release of that tag. Create that release as a draft with its notes (`gh release create 1.0.0 --draft --verify-tag`). The job then attaches the six files in [Download](#download) to the release, and no others, and publishes it. Only that job can write to the repository.
 
 ## Disclaimer
 
