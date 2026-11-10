@@ -380,13 +380,14 @@ npm run preview
 
 Then, in a second terminal:
 
-| Script                             | Makes                                                                              |
-| ---------------------------------- | ---------------------------------------------------------------------------------- |
-| `node scripts/record-demo.mjs`     | `demo-desktop`, `demo-ipad`, `demo-iphone`, and `demo-devices` (`.mp4` and `.png`) |
-| `node scripts/capture-social.mjs`  | `social.png`, the preview picture for links to the repository                      |
-| `node scripts/render-icon-gif.mjs` | `app-icon.gif` and `app-icon.png`                                                  |
+| Script                                   | Makes                                                                                                                |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `node scripts/record-demo.mjs`           | `demo-desktop`, `demo-ipad`, `demo-iphone`, and `demo-devices` (`.mp4` and `.png`)                                   |
+| `node scripts/capture-social.mjs`        | `social.png`, the preview picture for links to the repository                                                        |
+| `node scripts/render-icon-gif.mjs`       | `app-icon.gif` and `app-icon.png`                                                                                    |
+| `./scripts/first-open-mockups/render.sh` | the first-open illustrations, rendered from HTML mock-ups with headless Chrome into `scripts/first-open-mockups/out` |
 
-Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the videos, and `--out <folder>` to write them somewhere other than `docs/media`. The videos in this README are GitHub attachments. To replace one, run `./scripts/upload-demo.sh docs/media/<name>.mp4` and put the URL it prints in this README. The script uses the upload endpoint behind GitHub's comment box, with your `gh` login; if GitHub retires it, drag the `.mp4` into any GitHub comment box instead. The [`docs-media`](https://github.com/furey/noise/releases/tag/docs-media) release keeps a copy of each file; the icon at the top of this README loads from it. The sound in each video is not a recording: the script runs the noise worklet in Node.js and follows the same taps and drags as the video.
+Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the videos, and `--out <folder>` to write them somewhere other than `docs/media`. The videos in this README are GitHub attachments. To replace one, run `./scripts/upload-demo.sh docs/media/<name>.mp4` and put the URL it prints in this README. The script uses the upload endpoint behind GitHub's comment box, with your `gh` login; if GitHub retires it, drag the `.mp4` into any GitHub comment box instead. The [`docs-media`](https://github.com/furey/noise/releases/tag/docs-media) release keeps a copy of each file; the icon at the top of this README loads from it. The sound in each video is not a recording: the script runs the noise worklet in Node.js and follows the same taps and drags as the video. The desktop videos load the app in an iframe on a drawn macOS desktop (`scripts/mac-scene.mjs`), with the app's Mac title-bar layout turned on. The recording harness runs the app's timers and animation frames on a virtual clock, so each video is the same on every run.
 
 ### Build workflow
 
