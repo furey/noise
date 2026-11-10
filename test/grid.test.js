@@ -18,11 +18,11 @@ test('the colour strip clears the home bar of a rounded screen', () => {
   assert.equal(thinBar.colourTop, thinBar.rows - COLOUR_ROWS - 1)
 })
 
-test('a macOS title bar moves the dots down to the third row and leaves the colour strip in place', () => {
+test('a macOS title bar moves the dots to the first row clear of it and leaves the colour strip in place', () => {
   const plain = measureGrid({ width: 1024, height: 768, dpr: 2, insets: NO_INSETS })
   const mac = measureGrid({ width: 1024, height: 768, dpr: 2, insets: NO_INSETS, titlebar: 32 })
   assert.equal(plain.timerRow, 1)
-  assert.equal(mac.timerRow, 3)
+  assert.equal(mac.timerRow, 2)
   assert.equal(mac.colourTop, plain.colourTop)
 })
 
@@ -47,7 +47,10 @@ test('with a mouse, the dot targets are two cells wide', () => {
   assert.equal(grid.tapMin, grid.cellW * 2)
 })
 
-test('in a small Mac window, the dots sit at least 12 px below the title bar', () => {
-  const grid = measureGrid({ width: 280, height: 220, dpr: 2, insets: NO_INSETS, titlebar: 32, mouse: true })
-  assert.ok(grid.timerRow * grid.stepY >= 44)
+test('on a Mac, the dots sit 40 to 50 px down at every cell size', () => {
+  for (const [width, height] of [[280, 220], [360, 300], [480, 360], [960, 600], [1600, 1000]]) {
+    const grid = measureGrid({ width, height, dpr: 2, insets: NO_INSETS, titlebar: 32, mouse: true })
+    const top = grid.timerRow * grid.stepY
+    assert.ok(top >= 40 && top < 50 + grid.stepY, `${width}x${height}: ${top}`)
+  }
 })
