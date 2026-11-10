@@ -190,7 +190,7 @@ const main = async () => {
 const recordShot = async ({ browser, name, shot }) => {
   const work = await fs.mkdtemp(path.join(os.tmpdir(), `noise-demo-${name}-`))
   const framePng = path.join(work, 'frame.png')
-  await renderSvg({ browser, svg: frameSvg({ ...shot, shapes: shot.devices.map(device => device.shape) }), width: shot.width, height: shot.height, out: framePng })
+  await renderSvg({ browser, svg: frameSvg({ ...shot, shapes: shot.devices.map(device => device.shape), stage: name === 'devices' }), width: shot.width, height: shot.height, out: framePng })
   const sessions = []
   for (const device of shot.devices) sessions.push(await openSession({ browser, device }))
   const timelines = sessions.map(session => buildTimeline(session))

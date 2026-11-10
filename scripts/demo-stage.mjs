@@ -16,6 +16,7 @@ const RIM = '#2a2a2f'
 const CHROME_BAR = '#1c1c1f'
 const CHROME_DOT = '#3b3b41'
 const CHROME_PILL = '#26262a'
+const STAGE = { glow: '#1d1d24', deskTop: '#1e1e24', deskBottom: '#0a0a0c', spill: 0.06, deskRise: 1 / 6 }
 
 export const desktopFrame = ({ x, y, w, h, bar }) => {
   const r = 12
@@ -27,6 +28,7 @@ export const desktopFrame = ({ x, y, w, h, bar }) => {
   const dots = [0, 1, 2].map(i => `<circle cx="${x + (20 + i * 20) * scale}" cy="${y + bar / 2}" r="${6 * scale}" fill="${CHROME_DOT}"/>`)
   const pillW = Math.min(420 * scale, w * 0.4)
   return {
+    bounds: { top: y, bottom: y + h },
     under: `<path fill-rule="evenodd" fill="${RIM}" d="${roundedRect({ x: x - 1, y: y - 1, w: w + 2, h: h + 2, r: r + 1 })}${roundedRect({ x, y, w, h, r })}"/>`,
     body: `<path fill-rule="evenodd" fill="${CHROME_BAR}" d="${roundedRect({ x, y, w, h, r })}${hole}"/>`
       + dots.join('')
@@ -39,6 +41,7 @@ export const deviceFrame = ({ x, y, w, h, bezel, screenRadius }) => {
   const outer = { x: x - bezel, y: y - bezel, w: w + bezel * 2, h: h + bezel * 2, r: screenRadius + bezel }
   const rim = Math.max(1, bezel / 14)
   return {
+    bounds: { top: outer.y, bottom: outer.y + outer.h },
     under: `<path fill-rule="evenodd" fill="${RIM}" d="${roundedRect({ x: outer.x - rim, y: outer.y - rim, w: outer.w + rim * 2, h: outer.h + rim * 2, r: outer.r + rim })}${roundedRect(outer)}"/>`,
     body: `<path fill-rule="evenodd" fill="${BEZEL}" d="${roundedRect(outer)}${roundedRect({ x, y, w, h, r: screenRadius })}"/>`
       + `<circle cx="${x + w / 2}" cy="${y - bezel / 2}" r="${Math.max(2, bezel / 7)}" fill="#141417"/>`,
@@ -46,12 +49,37 @@ export const deviceFrame = ({ x, y, w, h, bezel, screenRadius }) => {
   }
 }
 
-export const frameSvg = ({ width, height, shapes }) => {
-  const outlines = shapes.map(shape => shape.outline).join('')
+export const frameSvg = ({ width, height, shapes, stage = false }) => {
+  const room = `M0 0H${width}V${height}H0Z${shapes.map(shape => shape.outline).join('')}`
+  const backdrop = stage
+    ? stageSvg({ width, height, room, deskY: deskLine(shapes) })
+    : `<path fill-rule="evenodd" fill="${BACKDROP}" d="${room}"/>`
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`
-    + `<path fill-rule="evenodd" fill="${BACKDROP}" d="M0 0H${width}V${height}H0Z${outlines}"/>`
+    + backdrop
     + shapes.map(shape => shape.under + shape.body).join('')
     + '</svg>'
+}
+
+const deskLine = shapes => {
+  const base = Math.max(...shapes.map(({ bounds }) => bounds.bottom))
+  const tallest = Math.max(...shapes.map(({ bounds }) => bounds.bottom - bounds.top))
+  return Math.round(base - tallest * STAGE.deskRise)
+}
+
+const stageSvg = ({ width, height, room, deskY }) => {
+  const cx = width / 2
+  const oval = (cy, ry) => `gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${width / 2}" `
+    + `gradientTransform="translate(${cx} ${cy}) scale(1 ${ry}) translate(${-cx} ${-cy})"`
+  return '<defs>'
+    + `<radialGradient id="glow" ${oval(deskY * 0.62, 0.5)}><stop offset="0" stop-color="${STAGE.glow}"/><stop offset="1" stop-color="${BACKDROP}"/></radialGradient>`
+    + `<linearGradient id="desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${STAGE.deskTop}"/><stop offset="1" stop-color="${STAGE.deskBottom}"/></linearGradient>`
+    + `<radialGradient id="spill" ${oval(deskY, 0.18)}><stop offset="0" stop-color="#fff" stop-opacity="${STAGE.spill}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`
+    + `<clipPath id="room"><path clip-rule="evenodd" d="${room}"/></clipPath>`
+    + '</defs><g clip-path="url(#room)">'
+    + `<rect width="${width}" height="${deskY}" fill="url(#glow)"/>`
+    + `<rect y="${deskY}" width="${width}" height="${height - deskY}" fill="url(#desk)"/>`
+    + `<rect y="${deskY}" width="${width}" height="${height - deskY}" fill="url(#spill)"/>`
+    + '</g>'
 }
 
 export const launchBrowser = () => chromium.launch({ executablePath: CHROME, headless: true })
