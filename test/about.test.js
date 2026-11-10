@@ -13,6 +13,7 @@ const KEYS = [
   { label: '← →', code: 'ArrowLeft' },
   { label: '↑ ↓', code: 'ArrowUp' },
   { label: 'T ', code: "e.key === 't'" },
+  { label: 'W ', code: "e.key === 'w'" },
   { label: '? ', code: "e.key === '?'" },
   { label: 'Esc', code: "e.key === 'Escape'" },
 ]

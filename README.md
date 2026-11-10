@@ -262,7 +262,7 @@ The timer counts down only while the sound plays. In the last minute, the sound 
   <img src="docs/wave/wave-light.svg" alt="A wave of noise colours moving from brown to violet and back" width="840">
 </picture>
 
-The dot in the top-left corner turns wave mode on and off. The dot is white while wave mode is on, and dim while it is off. A tap on the dot is the only way to turn wave mode on. `Esc`, a pause, and the end of the sleep timer also turn it off.
+The dot in the top-left corner turns wave mode on and off, and so does the `W` key. The dot is white while wave mode is on, and dim while it is off. `Esc`, a pause, and the end of the sleep timer also turn it off.
 
 If the sound was off when you turned wave mode on, and you touched nothing else, turning wave mode off also stops the sound. If the sound was already playing, or you changed the colour, volume, timer, or play state during wave mode, the sound carries on.
 
@@ -286,6 +286,7 @@ The synth changes shape in wave mode. The bars point out from the centre of the 
 | `←` / `→` | Move the colour a quarter step down or up |
 | `↑` / `↓` | Turn the volume up or down by `5%`        |
 | `T`       | Move the timer to the next setting        |
+| `W`       | Turn wave mode on or off                  |
 | `?`       | Open the help page                        |
 
 Screen readers get a **Play** button, a **Noise colour** slider, a **Volume** slider, a **Wave mode** button, and the timer button.

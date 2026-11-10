@@ -94,6 +94,7 @@ const onKey = ({ app, doc }, e) => {
     return app.togglePlay()
   }
   if (e.key === 't' || e.key === 'T') return app.cycleTimer()
+  if (e.key === 'w' || e.key === 'W') return app.toggleWave()
   if (e.key === '?') return openHelp(doc)
   const arrow = ARROWS[e.key]
   if (!arrow) return
