@@ -1,7 +1,7 @@
 {
   "name": "noise",
   "productName": "Noise",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Minimal brown, pink, white, blue, and violet noise for focus.",
   "author": "James Furey (https://about.me/jamesfurey)",
