@@ -254,7 +254,7 @@ On a Mac, the desktop app has no title bar, so the timer and wave dots also sit 
 
 ### Desktop window
 
-The window opens at `960` × `600` and you can make it as small as `280` × `220`, small enough for a corner of the screen. The grid of blocks changes to fit each size.
+The window opens at `960` × `600` and you can make it as small as `280` × `220`, small enough for a corner of the screen. The grid of blocks changes to fit each size. With a mouse or trackpad, the blocks shrink from `22` px to as small as `11` px as the window gets smaller, so a small window keeps about `20` rows. Touch screens keep blocks of at least `22` px, so a finger can still hit them.
 
 To keep the window above other windows, choose **View → Always on Top**. On Windows and Linux, press `Alt` to show the menu bar. The app remembers the size and position of the window, and the Always on Top setting.
 

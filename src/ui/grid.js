@@ -4,6 +4,10 @@ export const COLOUR_ROWS = 3
 export const TIMER_MIN_TAP_PX = 44
 
 const CELL_MIN_PX = 22
+const SMALL_CELL_MIN_PX = 11
+const SHRINK_FROM_PX = 440
+const SHRINK_TO_PX = 220
+const MOUSE_TAP_CELLS = 2
 const CELL_MAX_PX = 30
 const CELLS_ACROSS = 44
 const MIN_COLS = 12
@@ -11,8 +15,9 @@ const MIN_ROWS = 8
 
 const ROUNDED_TOP_ROWS = 3
 
-export const measureGrid = ({ width, height, dpr, insets, titlebar = 0 }) => {
-  const cols = Math.max(MIN_COLS, Math.round(width / clamp(width / CELLS_ACROSS, CELL_MIN_PX, CELL_MAX_PX)))
+export const measureGrid = ({ width, height, dpr, insets, titlebar = 0, mouse = false }) => {
+  const minCell = mouse ? smallestCell(Math.min(width, height)) : CELL_MIN_PX
+  const cols = Math.max(MIN_COLS, Math.round(width / clamp(width / CELLS_ACROSS, minCell, CELL_MAX_PX)))
   const cellW = width / cols
   const rows = Math.max(MIN_ROWS, Math.round(height / cellW))
   const stepY = height / rows
@@ -21,11 +26,17 @@ export const measureGrid = ({ width, height, dpr, insets, titlebar = 0 }) => {
   const colourTop = rows - COLOUR_ROWS - (rounded ? homeBarRows(insets.bottom, stepY) : 0)
   return {
     dpr, width, height, cols, cellW, stepY, rows, gap, insets, rounded,
+    tapMin: mouse ? MOUSE_TAP_CELLS * cellW : TIMER_MIN_TAP_PX,
     synthRows: colourTop,
     colourTop,
     timerCol: cols - 2 - Math.ceil(insets.right / cellW),
     timerRow: rounded || titlebar > 0 ? Math.max(ROUNDED_TOP_ROWS, Math.ceil(Math.max(insets.top, titlebar) / stepY)) : 1,
   }
+}
+
+const smallestCell = shortSide => {
+  const t = clamp((shortSide - SHRINK_TO_PX) / (SHRINK_FROM_PX - SHRINK_TO_PX), 0, 1)
+  return SMALL_CELL_MIN_PX + (CELL_MIN_PX - SMALL_CELL_MIN_PX) * t
 }
 
 const homeBarRows = (bottomInset, stepY) => Math.max(1, Math.ceil(bottomInset / stepY))
@@ -57,8 +68,8 @@ export const waveHitBox = grid => {
 
 export const timerHitBox = (grid, size) => {
   const cells = Math.max(1, size)
-  const width = Math.max(TIMER_MIN_TAP_PX, cells * grid.cellW)
-  const height = Math.max(TIMER_MIN_TAP_PX, grid.stepY)
+  const width = Math.max(grid.tapMin, cells * grid.cellW)
+  const height = Math.max(grid.tapMin, grid.stepY)
   const centreX = (grid.timerCol + 1 - cells / 2) * grid.cellW
   const centreY = (grid.timerRow + 0.5) * grid.stepY
   return { left: centreX - width / 2, top: centreY - height / 2, width, height }

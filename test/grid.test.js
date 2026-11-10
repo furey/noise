@@ -25,3 +25,24 @@ test('a macOS title bar moves the dots down to the third row and leaves the colo
   assert.equal(mac.timerRow, 3)
   assert.equal(mac.colourTop, plain.colourTop)
 })
+
+test('with a mouse, small windows shrink the cells to half size and keep about 20 rows', () => {
+  const smallest = measureGrid({ width: 280, height: 220, dpr: 2, insets: NO_INSETS, mouse: true })
+  assert.ok(smallest.cellW < 12)
+  assert.equal(smallest.rows, 20)
+  const middle = measureGrid({ width: 360, height: 300, dpr: 2, insets: NO_INSETS, mouse: true })
+  assert.ok(middle.cellW > 14 && middle.cellW < 16)
+  const full = measureGrid({ width: 960, height: 600, dpr: 2, insets: NO_INSETS, mouse: true })
+  assert.deepEqual([full.cols, full.rows], [44, 28])
+})
+
+test('touch screens keep cells of at least 22 px and 44 px dot targets', () => {
+  const touch = measureGrid({ width: 280, height: 220, dpr: 2, insets: NO_INSETS })
+  assert.ok(touch.cellW >= 21)
+  assert.equal(touch.tapMin, 44)
+})
+
+test('with a mouse, the dot targets are two cells wide', () => {
+  const grid = measureGrid({ width: 280, height: 220, dpr: 2, insets: NO_INSETS, mouse: true })
+  assert.equal(grid.tapMin, grid.cellW * 2)
+})

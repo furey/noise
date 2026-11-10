@@ -76,7 +76,8 @@ const measureLayout = () => {
   const height = spec.clientHeight || innerHeight
   const insets = readInsets()
   const titlebar = document.querySelector('.titlebar')?.offsetHeight ?? 0
-  return measureGrid({ width, height, dpr: backingDpr(width, height), insets, titlebar })
+  const mouse = matchMedia('(pointer: fine)').matches
+  return measureGrid({ width, height, dpr: backingDpr(width, height), insets, titlebar, mouse })
 }
 
 const backingDpr = (width, height) =>
