@@ -5,10 +5,11 @@ import { parseArgs } from 'node:util'
 import { measureGrid, timerHitBox } from '../src/ui/grid.js'
 import { LAST } from '../src/ui/colours.js'
 import {
-  BACKDROP, FPS, automationLog, desktopFrame, deviceFrame, ensureDir, ffmpeg, frameSvg, launchBrowser, mediaDir, openApp,
+  BACKDROP, FPS, automationLog, deviceFrame, ensureDir, ffmpeg, frameSvg, launchBrowser, mediaDir, openApp,
   renderSvg, stepApp, virtualNow,
 } from './demo-stage.mjs'
 import { renderDemoAudio } from './render-demo-audio.mjs'
+import { drawCursor, openMacScene, setWindow } from './mac-scene.mjs'
 
 const { values } = parseArgs({
   options: {
@@ -98,15 +99,29 @@ const heroScript = ({ from, to }) => [
   ['wait', 2.0],
 ]
 
-const desktopDevice = ({ viewport, dpr, x, y, bar, settings, script, pointer }) => {
-  const w = viewport.width * dpr
-  const h = viewport.height * dpr
-  return {
-    viewport, dpr, settings, script, pointer,
-    screen: { x, y: y + bar },
-    shape: desktopFrame({ x, y, w, h: h + bar, bar }),
-  }
-}
+const macDevice = ({ scene, dpr, x, y, window, monitor, settings, script }) => ({
+  kind: 'mac', viewport: scene, dpr, window, settings, script, pointer: MOUSE,
+  screen: { x, y },
+  shape: monitor
+    ? deviceFrame({ x, y, w: scene.width * dpr, h: scene.height * dpr, bezel: monitor.bezel, screenRadius: monitor.radius })
+    : fullBleed({ w: scene.width * dpr, h: scene.height * dpr }),
+})
+
+const fullBleed = ({ w, h }) => ({ bounds: { top: 0, bottom: h }, under: '', body: '', outline: `M0 0H${w}V${h}H0Z` })
+
+const resizeScript = ({ small, full }) => [
+  ['wait', 0.6],
+  ['resize', small, 1.6],
+  ['wait', 1.8],
+  ['resize', full, 1.4],
+  ['wait', 2.0],
+]
+
+const withResize = script => [
+  ...script.slice(0, -3),
+  ...resizeScript({ small: { w: 660, h: 430 }, full: DESKTOP_WINDOW }),
+  ...script.slice(-3),
+]
 
 const touchDevice = ({ viewport, dpr, x, y, bezel, radius, settings, insets, script, pointer }) => ({
   viewport, dpr, settings, insets, script, pointer,
@@ -114,6 +129,8 @@ const touchDevice = ({ viewport, dpr, x, y, bezel, radius, settings, insets, scr
   shape: deviceFrame({ x, y, w: viewport.width * dpr, h: viewport.height * dpr, bezel, screenRadius: radius }),
 })
 
+const NO_INSETS = { top: 0, right: 0, bottom: 0, left: 0 }
+const MAC_TITLEBAR_PX = 32
 const MOUSE = { mode: 'mouse', dot: 20, ring: 70 }
 const TOUCH = { mode: 'touch', dot: 46, ring: 96 }
 const PHONE_INSETS = { top: 47, right: 0, bottom: 34, left: 0 }
@@ -123,15 +140,16 @@ const CAPTION = {
   colour: '#f2f2f4', font: '-apple-system, BlinkMacSystemFont, Helvetica Neue, sans-serif',
 }
 
+const DESKTOP_WINDOW = { x: 200, y: 130, w: 1200, h: 750 }
 const HERO_SETTINGS = { pos: 0, volume: 0.6 }
 const HERO_SCRIPT = heroScript({ from: 0, to: 4 })
 
 const SHOTS = {
   desktop: {
     width: 1600, height: 1000, poster: 6.0,
-    devices: [desktopDevice({
-      viewport: { width: 1440, height: 856 }, dpr: 1, x: 80, y: 52, bar: 40, pointer: MOUSE,
-      script: fullScript({ glide: 0.8, drag: 3.8, from: 0, to: 4 }),
+    devices: [macDevice({
+      scene: { width: 1600, height: 1000 }, dpr: 1, x: 0, y: 0, window: DESKTOP_WINDOW,
+      script: withResize(fullScript({ glide: 0.8, drag: 3.8, from: 0, to: 4 })),
     })],
   },
   ipad: {
@@ -160,9 +178,9 @@ const SHOTS = {
   devices: {
     width: 1920, height: 1080, poster: 5.2,
     devices: [
-      desktopDevice({
-        viewport: { width: 1440, height: 900 }, dpr: 0.55, x: 61, y: 381, bar: 24, pointer: MOUSE,
-        settings: HERO_SETTINGS, script: HERO_SCRIPT,
+      macDevice({
+        scene: { width: 1440, height: 900 }, dpr: 0.55, x: 71, y: 395, monitor: { bezel: 10, radius: 6 },
+        window: { x: 220, y: 140, w: 1000, h: 640 }, settings: HERO_SETTINGS, script: HERO_SCRIPT,
       }),
       touchDevice({
         viewport: { width: 1024, height: 1366 }, dpr: 0.5, x: 932, y: 199, bezel: 18, radius: 12, pointer: TOUCH,
@@ -195,11 +213,11 @@ const recordShot = async ({ browser, name, shot }) => {
   for (const device of shot.devices) sessions.push(await openSession({ browser, device }))
   const timelines = sessions.map(session => buildTimeline(session))
   const frameCount = Math.max(...timelines.map(timeline => timeline.cues.length))
-  const starts = await Promise.all(sessions.map(session => virtualNow(session.page)))
+  const starts = await Promise.all(sessions.map(session => virtualNow(session.app)))
   for (let frame = 0; frame < frameCount; frame++) {
     await Promise.all(sessions.map((session, index) => playFrame({ session, cue: timelines[index].cues[frame] ?? timelines[index].cues.at(-1), dir: path.join(work, `d${index}`), frame })))
   }
-  const log = await automationLog(sessions[0].page)
+  const log = await automationLog(sessions[0].app)
   await Promise.all(sessions.map(session => session.context.close()))
   const duration = frameCount / FPS
   const audio = path.join(work, 'audio.m4a')
@@ -212,14 +230,27 @@ const recordShot = async ({ browser, name, shot }) => {
 }
 
 const openSession = async ({ browser, device }) => {
-  const { context, page } = await openApp({
-    browser, url: values.url, viewport: device.viewport, dpr: device.dpr, settings: device.settings, insets: device.insets,
-  })
-  for (let t = 0; t < WARMUP_MS; t += 1000 / FPS) await stepApp(page, { dt: 1000 / FPS, pointer: null })
-  const grid = measureGrid({
-    width: device.viewport.width, height: device.viewport.height, dpr: Math.min(2, device.dpr), insets: device.insets ?? { top: 0, right: 0, bottom: 0, left: 0 },
-  })
-  return { context, page, device, spots: spotsFor(grid, device.viewport) }
+  const opened = device.kind === 'mac'
+    ? await openMacScene({ browser, url: values.url, scene: device.viewport, dpr: device.dpr, window: device.window, settings: device.settings })
+    : await openApp({ browser, url: values.url, viewport: device.viewport, dpr: device.dpr, settings: device.settings, insets: device.insets, touch: true })
+  const app = opened.app ?? opened.page
+  for (let t = 0; t < WARMUP_MS; t += 1000 / FPS) await stepApp(app, { dt: 1000 / FPS, pointer: null })
+  return { ...opened, app, device, spots: device.kind === 'mac' ? macSpots(device) : touchSpots(device) }
+}
+
+const touchSpots = device => spotsFor(measureGrid({
+  width: device.viewport.width, height: device.viewport.height, dpr: Math.min(2, device.dpr), insets: device.insets ?? NO_INSETS,
+}), device.viewport)
+
+const macSpots = ({ window, dpr }) => {
+  const size = { width: window.w, height: window.h }
+  const grid = measureGrid({ ...size, dpr: Math.min(2, dpr), insets: NO_INSETS, titlebar: MAC_TITLEBAR_PX, mouse: true })
+  const shift = ([x, y]) => [x + window.x, y + window.y]
+  const spots = spotsFor(grid, size)
+  return {
+    ...Object.fromEntries(Object.entries(spots).filter(([key]) => key !== 'colour').map(([key, at]) => [key, shift(at)])),
+    colour: pos => shift(spots.colour(pos)),
+  }
 }
 
 const spotsFor = (grid, viewport) => {
@@ -245,8 +276,8 @@ const spot = (spots, name) => {
 
 const buildTimeline = ({ device, spots }) => {
   const cues = []
-  const state = { at: spots.rest, down: false, taps: [], touchStart: null, captions: [] }
-  const push = (ops = []) => cues.push({ at: [...state.at], down: state.down, ops, time: cues.length / FPS })
+  const state = { at: spots.rest, down: false, taps: [], touchStart: null, captions: [], cursor: 'arrow', window: device.window }
+  const push = (ops = []) => cues.push({ at: [...state.at], down: state.down, cursor: state.cursor, ops, time: cues.length / FPS })
   const framesFor = seconds => Math.max(1, Math.round(seconds * FPS))
   const move = (to, seconds, op) => {
     const from = state.at
@@ -286,6 +317,24 @@ const buildTimeline = ({ device, spots }) => {
     },
     drag: (target, seconds) => move(spot(spots, target), seconds, 'move'),
     type: text => push([`type:${text}`]),
+    resize: (size, seconds) => {
+      const from = state.window
+      move([from.x + from.w, from.y + from.h], 0.6, null)
+      state.cursor = 'resize'
+      state.down = true
+      for (let i = 0; i < 6; i++) push()
+      const count = framesFor(seconds)
+      for (let i = 1; i <= count; i++) {
+        const t = ease(i / count)
+        state.window = { ...from, w: Math.round(from.w + (size.w - from.w) * t), h: Math.round(from.h + (size.h - from.h) * t) }
+        state.at = [state.window.x + state.window.w, state.window.y + state.window.h]
+        push([`window:${JSON.stringify(state.window)}`])
+      }
+      for (let i = 0; i < 4; i++) push()
+      state.down = false
+      state.cursor = 'arrow'
+      push()
+    },
     release: () => {
       push(['up'])
       state.down = false
@@ -314,14 +363,17 @@ const pointerLook = ({ cue, cues, taps, pointer }) => {
 }
 
 const playFrame = async ({ session, cue, dir, frame }) => {
-  const { page } = session
+  const { page, app, device } = session
+  const mac = device.kind === 'mac'
   for (const op of cue.ops) {
+    if (op.startsWith?.('window:')) await setWindow(page, JSON.parse(op.slice(7)))
     if (op === 'move') await page.mouse.move(cue.at[0], cue.at[1])
     if (op === 'down') await page.mouse.down()
     if (op === 'up') await page.mouse.up()
     if (op.startsWith?.('type:')) await page.keyboard.type(op.slice(5))
   }
-  await stepApp(page, { dt: 1000 / FPS, pointer: cue.look })
+  await stepApp(app, { dt: 1000 / FPS, pointer: mac ? null : cue.look })
+  if (mac) await drawCursor(page, { ...cue.look, kind: cue.cursor, down: cue.down })
   if (frame === 0) await ensureDir(dir)
   await page.screenshot({ path: path.join(dir, `${String(frame).padStart(5, '0')}.png`) })
 }

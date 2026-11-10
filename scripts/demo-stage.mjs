@@ -84,15 +84,19 @@ const stageSvg = ({ width, height, room, deskY }) => {
 
 export const launchBrowser = () => chromium.launch({ executablePath: CHROME, headless: true })
 
-export const openApp = async ({ browser, url, viewport, dpr, settings, insets }) => {
-  const context = await browser.newContext({ viewport, deviceScaleFactor: dpr, bypassCSP: true, serviceWorkers: 'block' })
-  const workletSource = await fs.readFile(path.join(appRoot, 'src', 'audio', 'noise.worklet.js'), 'utf8')
-  await context.addInitScript(installHarness, { workletSource, settings, insets })
+export const openApp = async ({ browser, url, viewport, dpr, settings, insets, touch = false }) => {
+  const context = await browser.newContext({ viewport, deviceScaleFactor: dpr, hasTouch: touch, bypassCSP: true, serviceWorkers: 'block' })
+  await addHarness({ context, settings, insets })
   const page = await context.newPage()
   await page.goto(url)
   await page.waitForFunction(() => globalThis.document.getElementById('spec')?.width > 0)
   await page.evaluate(() => globalThis.demo.step(0, null))
   return { context, page }
+}
+
+export const addHarness = async ({ context, settings, insets, mac = false }) => {
+  const workletSource = await fs.readFile(path.join(appRoot, 'src', 'audio', 'noise.worklet.js'), 'utf8')
+  await context.addInitScript(installHarness, { workletSource, settings, insets, mac })
 }
 
 export const stepApp = (page, { dt, pointer }) => page.evaluate(([ms, look]) => globalThis.demo.step(ms, look), [dt, pointer])
@@ -120,8 +124,9 @@ export const roundedRect = ({ x, y, w, h, r }) => [
 
 export const ensureDir = dir => fs.mkdir(dir, { recursive: true })
 
-const installHarness = ({ workletSource, settings, insets }) => {
+const installHarness = ({ workletSource, settings, insets, mac }) => {
   const { document, localStorage, dispatchEvent } = globalThis
+  if (globalThis.location.pathname.startsWith('/__scene')) return
   const SAMPLE_RATE = 48000
   const BLOCK = 128
   const clock = { now: 0 }
@@ -139,6 +144,35 @@ const installHarness = ({ workletSource, settings, insets }) => {
     return frameId
   }
   globalThis.cancelAnimationFrame = id => frames.delete(id)
+  const timers = new Map()
+  let timerId = 0
+  const addTimer = (callback, delay, every) => {
+    timerId += 1
+    timers.set(timerId, { callback, at: clock.now + Math.max(0, delay || 0), every })
+    return timerId
+  }
+  globalThis.setTimeout = (callback, delay) => addTimer(callback, delay, 0)
+  globalThis.setInterval = (callback, delay) => addTimer(callback, delay, Math.max(1, delay || 0))
+  globalThis.clearTimeout = globalThis.clearInterval = id => timers.delete(id)
+  const runTimers = () => {
+    for (;;) {
+      const due = [...timers.entries()].filter(([, timer]) => timer.at <= clock.now).sort((a, b) => a[1].at - b[1].at)[0]
+      if (!due) return
+      const [id, timer] = due
+      if (timer.every) timer.at += timer.every
+      else timers.delete(id)
+      timer.callback()
+    }
+  }
+  if (mac) {
+    document.addEventListener('readystatechange', () => {
+      if (document.readyState !== 'interactive') return
+      document.documentElement.classList.add('desktop', 'mac')
+      const strip = document.createElement('div')
+      strip.className = 'titlebar'
+      document.body.prepend(strip)
+    })
+  }
   const seconds = () => clock.now / 1000
   const createParam = (name, initial) => {
     const segments = [{ time: 0, target: initial, tc: 0, from: initial }]
@@ -334,6 +368,7 @@ const installHarness = ({ workletSource, settings, insets }) => {
   const step = (ms, look) => {
     clock.now += ms
     generate(seconds())
+    runTimers()
     settleAnimations()
     const callbacks = [...frames.values()]
     frames.clear()

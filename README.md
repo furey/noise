@@ -22,7 +22,7 @@
   <a href="#download"><strong>Download for your computer →</strong></a>
 </p>
 
-<https://github.com/user-attachments/assets/9c756658-c0ac-41bf-b58d-a3bba24bed3f>
+<https://github.com/user-attachments/assets/9101b7cf-be2e-47a7-813e-6bc56a319606>
 
 ## Contents
 
@@ -230,15 +230,15 @@ With a mouse, the pointer shows what a click or drag does: a hand on the synth w
 
 The desktop app:
 
-<https://github.com/user-attachments/assets/de002093-934d-4d86-a517-d5b34b79dca8>
+<https://github.com/user-attachments/assets/ee7ef664-f6c9-4650-a2b1-7e207c67f67e>
 
 On a tablet:
 
-<https://github.com/user-attachments/assets/9ad4b48b-33b2-44d0-b446-757ed905755e>
+<https://github.com/user-attachments/assets/b9e48965-3d42-4e37-908c-37a339a38556>
 
 On a phone:
 
-<https://github.com/user-attachments/assets/e8c52df8-b3ac-45e8-a59c-e0dd0bfe7d78>
+<https://github.com/user-attachments/assets/e15cf3a5-a4d8-465f-a115-f682836eae33>
 
 ### Sleep timer
 
