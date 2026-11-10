@@ -257,6 +257,11 @@ The timer counts down only while the sound plays. In the last minute, the sound 
 
 ### Wave mode
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/wave/wave-dark.svg">
+  <img src="docs/wave/wave-light.svg" alt="A wave of noise colours moving from brown to violet and back" width="840">
+</picture>
+
 The dot in the top-left corner turns wave mode on and off. The dot is white while wave mode is on, and dim while it is off. A tap on the dot is the only way to turn wave mode on. `Esc`, a pause, and the end of the sleep timer also turn it off.
 
 If the sound was off when you turned wave mode on, and you touched nothing else, turning wave mode off also stops the sound. If the sound was already playing, or you changed the colour, volume, timer, or play state during wave mode, the sound carries on.
@@ -376,7 +381,7 @@ The help window loads [`help.html`](./help.html). [`src/help/render.js`](./src/h
 
 ### Demo media
 
-The scripts in [`scripts`](./scripts) make the pictures and videos in this README. They write to `docs/media`, and need Google Chrome and `ffmpeg`. Set `CHROME_PATH` if Chrome is not in `/Applications`.
+The scripts in [`scripts`](./scripts) make the pictures and videos in this README. They write to `docs/media`, and need Google Chrome and `ffmpeg`. The exception is `node scripts/render-wave.mjs`, which writes the two animated wave pictures in [`docs/wave`](./docs/wave) from the same wave code as the help window; those pictures are part of the repository. Set `CHROME_PATH` if Chrome is not in `/Applications`.
 
 The video and social scripts open the built app at `http://localhost:4173/`. Start it first:
 

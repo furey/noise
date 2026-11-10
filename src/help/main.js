@@ -1,10 +1,9 @@
 import { COLOURS } from '../ui/colours.js'
+import { WAVE_BARS, WAVE_SPEED_MS, waveColour, waveLevel, waveStep } from './wave.js'
 import { PLAYBACK_CHANNEL } from '../ui/playback-channel.js'
 import { helpText, renderHelp } from './render.js'
 
 const WAVE_WIDTH = 28
-const WAVE_SPEED_MS = 900
-const WAVE_BARS = '▁▂▃▄▅▆▇█'
 
 const start = async () => {
   const html = await fetch('./index.html').then(response => response.text())
@@ -38,11 +37,9 @@ const animateWave = reducedMotion => {
   requestAnimationFrame(draw)
 }
 
-const waveCells = phase => Array.from({ length: WAVE_WIDTH }, (_, index) => {
-  const level = (Math.sin(index / 5 - phase) + 1) / 2
-  const colour = COLOURS[Math.min(COLOURS.length - 1, Math.floor(level * COLOURS.length))]
-  const bar = WAVE_BARS[Math.min(WAVE_BARS.length - 1, Math.floor(level * WAVE_BARS.length))]
-  return `<span class="${colour.id}">${bar}</span>`
+const waveCells = phase => Array.from({ length: WAVE_WIDTH }, (_, column) => {
+  const level = waveLevel({ column, phase })
+  return `<span class="${waveColour(level).id}">${WAVE_BARS[waveStep(level)]}</span>`
 }).join('')
 
 const $ = id => document.getElementById(id)
