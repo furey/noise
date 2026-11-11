@@ -34,7 +34,7 @@ const start = () => {
     layout.grid = measureLayout()
     synth.resize(layout.grid)
     view.placeTimer(layout.grid)
-    loop.wake()
+    loop.redraw()
   }
   const syncPlayback = bindMediaSession({ play: () => app.setPlaying(true), pause: () => app.setPlaying(false) })
   const scheduleRelayout = oncePerFrame(relayout)

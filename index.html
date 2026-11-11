@@ -36,7 +36,7 @@ KEYS
 WAVE MODE
   The colour rises from brown to a random crest, holds, and falls
   back: 4.5–8s up, 5–9s down. The volume swells with it.
-  A colour change moves the wave to that colour. A pause ends it.
+  A colour change moves the wave there. A pause does not end it.
   Started from silence, wave mode off also stops the sound.
 
 SLEEP TIMER
@@ -57,14 +57,16 @@ SOURCE
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; media-src 'self'; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'sha256-coMntPn1G0/sp126A+3P/ZUj6PlWIuag/nb33eGJw30='; img-src 'self'; media-src 'self'; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="theme-color" content="#050505">
 <meta name="color-scheme" content="dark">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Noise">
 <meta name="description" content="Brown, pink, white, blue, and violet noise for focus.">
 <title>Noise</title>
+<style>html,body{background:#050505}</style>
 <link rel="icon" href="icons/favicon.svg?v=3" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">

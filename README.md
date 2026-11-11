@@ -262,7 +262,7 @@ The timer counts down only while the sound plays. In the last minute, the sound 
   <img src="docs/wave/wave-light.svg" alt="A wave of noise colours moving from brown to violet and back" width="840">
 </picture>
 
-The dot in the top-left corner turns wave mode on and off, and so does the `W` key. The dot is white while wave mode is on, and dim while it is off. `Esc`, a pause, and the end of the sleep timer also turn it off.
+The dot in the top-left corner turns wave mode on and off, and so does the `W` key. The dot is white while wave mode is on, and dim while it is off. `Esc` also turns it off. A pause does not: the dot stays white, and play starts the wave again where it stopped. This holds for every pause, including the lock screen controls, headphone buttons, a phone call, and the end of the sleep timer.
 
 If the sound was off when you turned wave mode on, and you touched nothing else, turning wave mode off also stops the sound. If the sound was already playing, or you changed the colour, volume, timer, or play state during wave mode, the sound carries on.
 

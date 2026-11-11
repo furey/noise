@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { defineConfig } from 'vite'
+import { SPLASH_DIR, splashScreens } from './scripts/splash-screens.mjs'
 
 const SERVICE_WORKER = 'src/sw.js'
 const PUBLIC_DIR = 'public'
@@ -10,6 +11,17 @@ const stripCrossorigin = () => ({
   name: 'strip-crossorigin',
   enforce: 'post',
   transformIndexHtml: html => html.replaceAll(' crossorigin', ''),
+})
+
+const splashLinks = () => ({
+  name: 'splash-links',
+  transformIndexHtml: (_html, { filename }) => filename.endsWith('index.html')
+    ? splashScreens().map(({ file, media }) => ({
+      tag: 'link',
+      attrs: { rel: 'apple-touch-startup-image', href: `${SPLASH_DIR}/${file}`, media },
+      injectTo: 'head',
+    }))
+    : [],
 })
 
 const serviceWorker = () => ({
@@ -34,7 +46,9 @@ const publicFiles = dir => Object.fromEntries(
   fs.readdirSync(dir, { recursive: true, withFileTypes: true })
     .filter(entry => entry.isFile() && !entry.name.startsWith('.'))
     .map(entry => path.join(entry.parentPath, entry.name))
-    .map(file => [path.relative(dir, file).split(path.sep).join('/'), fs.readFileSync(file)]),
+    .map(file => path.relative(dir, file).split(path.sep).join('/'))
+    .filter(name => !name.startsWith(`${SPLASH_DIR}/`))
+    .map(name => [name, fs.readFileSync(path.join(dir, name))]),
 )
 
 const versionOf = ({ files, names }) => {
@@ -45,7 +59,7 @@ const versionOf = ({ files, names }) => {
 
 export default defineConfig({
   base: './',
-  plugins: [stripCrossorigin(), serviceWorker()],
+  plugins: [stripCrossorigin(), splashLinks(), serviceWorker()],
   build: {
     sourcemap: false,
     assetsInlineLimit: 0,

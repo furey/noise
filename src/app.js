@@ -52,10 +52,10 @@ const subscribe = (app, listener) => {
 
 const setPlaying = (app, on) => {
   const { state, engine } = app
-  if (!on && state.wave) stopWave(app)
   state.playing = on
   state.timer = unfade(state.timer)
   syncClock(app)
+  syncTide(app)
   notify(app)
   if (!on) return engine.pause()
   engine.setVolume(state.volume)
@@ -83,6 +83,7 @@ const stopAfterFailure = app => {
   if (!app.state.playing) return
   app.state.playing = false
   syncClock(app)
+  syncTide(app)
   notify(app)
 }
 
@@ -156,13 +157,21 @@ const interact = (app, action) => {
 }
 
 const startWave = app => {
-  const { state, tide } = app
+  const { state } = app
   app.waveFromSilence = !state.playing
   state.wave = true
   restartTide(app, { quick: true })
-  tide.id = setInterval(() => flowTide(app), WAVE_TICK_MS)
-  if (!state.playing) setPlaying(app, true)
+  if (!state.playing) return setPlaying(app, true)
+  syncTide(app)
   notify(app)
+}
+
+const syncTide = app => {
+  const { state, tide } = app
+  if (!state.wave || !state.playing) return stopTide(app)
+  if (tide.id) return
+  Object.assign(tide, { last: performance.now(), plan: null })
+  tide.id = setInterval(() => flowTide(app), WAVE_TICK_MS)
 }
 
 const restartTide = (app, { quick = false } = {}) => {
@@ -194,10 +203,6 @@ const flowTide = app => {
   const now = performance.now()
   const elapsed = (now - tide.last) / 1000
   tide.last = now
-  if (!state.playing) {
-    tide.plan = null
-    return
-  }
   tide.seconds += elapsed
   state.pos = clampPos(waveAt(tide.wave, tide.seconds).pos)
   forget(tide.wave, tide.seconds)

@@ -180,12 +180,72 @@ test('another control used during wave mode keeps the sound on when wave mode en
   app.dispose()
 })
 
-test('pausing during wave mode ends wave mode', () => {
-  const { app } = start()
+test('pausing during wave mode keeps wave mode on, and play resumes the wave', () => {
+  mock.timers.enable({ apis: ['setInterval'] })
+  const { app, engine } = start()
   app.setPlaying(true)
   app.toggleWave()
   app.togglePlay()
   assert.equal(app.state.playing, false)
-  assert.equal(app.state.wave, false)
+  assert.equal(app.state.wave, true)
+  const plans = () => engine.calls.filter(call => call.planPosition).length
+  mock.timers.tick(500)
+  assert.equal(plans(), 0)
+  app.setPlaying(true)
+  mock.timers.tick(50)
+  assert.equal(plans(), 1)
   app.dispose()
+  mock.timers.reset()
+})
+
+test('an interruption keeps wave mode on', () => {
+  const { app, engine } = start()
+  app.toggleWave()
+  engine.interrupt()
+  assert.equal(app.state.playing, false)
+  assert.equal(app.state.wave, true)
+  app.dispose()
+})
+
+test('the end of the sleep timer keeps wave mode on', () => withClock(() => {
+  const { app } = start()
+  app.cycleTimer()
+  app.toggleWave()
+  mock.timers.setTime(2 * HOUR)
+  mock.timers.tick(1000)
+  assert.equal(app.state.playing, false)
+  assert.equal(app.state.wave, true)
+  app.dispose()
+}))
+
+test('wave mode off while paused stays silent', () => {
+  const { app } = start()
+  app.toggleWave()
+  app.setPlaying(false)
+  app.toggleWave()
+  assert.equal(app.state.wave, false)
+  assert.equal(app.state.playing, false)
+})
+
+test('a colour tap while paused in wave mode plays the wave from that colour', () => {
+  const { app } = start()
+  app.toggleWave()
+  app.setPlaying(false)
+  app.selectColour(2)
+  assert.equal(app.state.playing, true)
+  assert.equal(app.state.wave, true)
+  app.dispose()
+})
+
+test('play after a page halt starts the wave again', () => {
+  mock.timers.enable({ apis: ['setInterval'] })
+  const { app, engine } = start()
+  app.toggleWave()
+  app.halt()
+  assert.equal(app.state.wave, true)
+  app.setPlaying(true)
+  mock.timers.tick(50)
+  assert.equal(engine.calls.filter(call => call.planPosition).length, 1)
+  app.dispose()
+  mock.timers.reset()
 })

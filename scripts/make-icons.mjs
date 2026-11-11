@@ -3,6 +3,7 @@ import { copyFileSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { deflateSync, inflateSync } from 'node:zlib'
+import { SPLASH_BOTTOM, SPLASH_DIR, SPLASH_TOP, splashScreens } from './splash-screens.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SOURCES = join(ROOT, 'build', 'icon-source')
@@ -22,6 +23,7 @@ const main = () => {
   makeWindows()
   makeLinux()
   makeWeb()
+  makeSplash()
   console.log(`Icons written under ${ROOT}`)
 }
 
@@ -61,6 +63,34 @@ const makeWeb = () => {
   })
   writeFileSync(join(web, 'apple-touch-icon.png'), dropAlpha(touch))
 }
+
+const makeSplash = () => {
+  const dir = join(ROOT, 'public', SPLASH_DIR)
+  rmSync(dir, { recursive: true, force: true })
+  mkdirSync(dir, { recursive: true })
+  const top = hexToRgb(SPLASH_TOP)
+  const bottom = hexToRgb(SPLASH_BOTTOM)
+  splashScreens().forEach(({ file, pixelWidth, pixelHeight }) =>
+    writeFileSync(join(dir, file), verticalGradientPng({ width: pixelWidth, height: pixelHeight, top, bottom })))
+}
+
+const verticalGradientPng = ({ width, height, top, bottom }) => {
+  const rowOf = color => Buffer.concat([Buffer.from([0]), Buffer.alloc(width * 3, Buffer.from(color))])
+  const colorAt = y => top.map((start, channel) => Math.round(start + (bottom[channel] - start) * y / (height - 1)))
+  const ihdr = Buffer.alloc(13)
+  ihdr.writeUInt32BE(width, 0)
+  ihdr.writeUInt32BE(height, 4)
+  ihdr[8] = 8
+  ihdr[9] = 2
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    pngChunk('IHDR', ihdr),
+    pngChunk('IDAT', deflateSync(Buffer.concat(Array.from({ length: height }, (_, y) => rowOf(colorAt(y)))), { level: 9 })),
+    pngChunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+const hexToRgb = hex => [1, 3, 5].map(start => parseInt(hex.slice(start, start + 2), 16))
 
 const sourceFor = size => size <= SMALL_ICON_MAX ? FAVICON : MASTER
 

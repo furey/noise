@@ -46,6 +46,7 @@ const prepare = engine => {
 const play = async engine => {
   engine.wanted = true
   clearTimeout(engine.suspendTimer)
+  wake(engine)
   await prepare(engine)
   if (!engine.wanted) return scheduleSuspend(engine)
   await engine.ctx.resume()
@@ -56,12 +57,19 @@ const play = async engine => {
 }
 
 const unlock = engine => {
-  if (!engine.wanted || engine.live || !engine.ctx) return
+  if (!engine.wanted || engine.live) return
+  wake(engine)
+}
+
+const wake = engine => {
+  if (!engine.ctx) return
   engine.ctx.resume().catch(() => {})
   engine.element?.play().catch(() => {})
 }
 
-const isBlocked = engine => engine.wanted && !engine.live && engine.ctx?.state === 'suspended' && Boolean(engine.noise)
+const isBlocked = engine => engine.wanted && !engine.live && isHeld(engine.ctx) && Boolean(engine.noise)
+
+const isHeld = ctx => ctx?.state === 'suspended' || ctx?.state === 'interrupted'
 
 const pause = engine => {
   engine.wanted = false

@@ -11,6 +11,7 @@ export const createFrameLoop = ({ draw, doc = document, fps = 60 }) => {
   doc.addEventListener('visibilitychange', onVisibility)
   return {
     wake: () => wake(loop),
+    redraw: () => redraw(loop),
     dispose: () => {
       sleep(loop)
       doc.removeEventListener('visibilitychange', onVisibility)
@@ -22,6 +23,11 @@ const wake = loop => {
   if (loop.id || loop.timer || loop.doc.hidden) return
   loop.last = performance.now()
   request(loop)
+}
+
+const redraw = loop => {
+  loop.draw(0, performance.now())
+  wake(loop)
 }
 
 const sleep = loop => {
