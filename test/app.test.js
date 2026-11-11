@@ -133,6 +133,17 @@ test('wave mode schedules the sound two seconds ahead and replans only when the 
   mock.timers.reset()
 })
 
+test('a play the engine rejects shows the app as paused and cancels the engine play', async () => {
+  const { app, engine } = start()
+  engine.play = async () => {
+    throw new Error('blocked')
+  }
+  app.setPlaying(true)
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(app.state.playing, false)
+  assert.equal(engine.calls.at(-1), 'pause')
+})
+
 test('a release that cannot start the sound shows the app as paused, so the next tap plays', () => {
   const { app, engine } = start()
   app.setPos(2)

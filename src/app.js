@@ -82,6 +82,7 @@ const halt = app => {
 const stopAfterFailure = app => {
   if (!app.state.playing) return
   app.state.playing = false
+  app.engine.pause()
   syncClock(app)
   syncTide(app)
   notify(app)

@@ -15,7 +15,7 @@ const ARROWS = {
 
 export const bindControls = ({ app, doc, layout }) => {
   const surface = doc.getElementById('surface')
-  const controls = { app, doc, layout, surface, dragVolume: 0, playingAtPress: false }
+  const controls = { app, doc, layout, surface, dragVolume: 0, playingAtPress: false, silentCheck: 0 }
   const unbinders = [
     bindSurface(controls),
     listen(doc.getElementById('play'), 'click', () => app.togglePlay()),
@@ -30,7 +30,7 @@ export const bindControls = ({ app, doc, layout }) => {
 
 const bindSurface = controls => bindGestures({
   surface: controls.surface,
-  zoneAt: y => controls.layout.stripLocked ? 'synth' : zoneAt(controls.layout.grid, y),
+  zoneAt: y => zoneAt(controls.layout.grid, y),
   onPress: press => onPress(controls, press),
   onDrag: drag => onDrag(controls, drag),
   onRelease: press => onRelease(controls, press),
@@ -41,15 +41,17 @@ const bindSurface = controls => bindGestures({
 })
 
 const onPress = (controls, { zone, x }) => {
+  clearTimeout(controls.silentCheck)
   controls.dragVolume = controls.app.state.volume
   controls.playingAtPress = controls.app.state.playing
-  if (zone === 'colour') beginColourDrag(controls, x)
+  if (zone === 'colour' && !controls.layout.stripLocked) beginColourDrag(controls, x)
   controls.app.unlockAudio()
 }
 
 const onDrag = (controls, drag) => {
-  if (drag.zone === 'colour') return dragColour(controls, drag)
-  dragVolume(controls, drag)
+  if (drag.zone !== 'colour') return dragVolume(controls, drag)
+  controls.layout.stripLocked = false
+  dragColour(controls, drag)
 }
 
 const dragColour = ({ app, layout }, { x }) => app.setPos(posAtX({ grid: layout.grid, x, last: LAST }))
@@ -62,7 +64,7 @@ const dragVolume = ({ app, layout, surface, dragVolume, playingAtPress }, { dy }
 
 const onRelease = (controls, { zone }) => {
   controls.app.unlockAudio()
-  setTimeout(() => controls.app.pauseIfSilent(), SILENT_CHECK_MS)
+  controls.silentCheck = setTimeout(() => controls.app.pauseIfSilent(), SILENT_CHECK_MS)
   if (zone === 'colour') return endColourDrag(controls)
   delete controls.surface.dataset.drag
 }

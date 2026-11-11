@@ -5,6 +5,7 @@ const FADE_OUT_S = 0.05
 const VOLUME_RAMP_S = 0.05
 const POSITION_RAMP_S = 0.015
 const SUSPEND_AFTER_MS = 400
+const STUCK_AFTER_MS = 1000
 const FFT_SIZE = 4096
 const ANALYSER_SMOOTHING = 0.85
 
@@ -13,7 +14,7 @@ export const isAudioSupported = () => Boolean(audioContextClass() && window.Audi
 export const createEngine = () => {
   const engine = {
     ctx: null, noise: null, master: null, analyser: null, element: null, fallbackSource: null,
-    booting: null, wanted: false, live: false, suspendTimer: 0, position: 0, volume: 0.6, onInterrupt: () => {},
+    booting: null, wanted: false, live: false, suspendTimer: 0, heldSince: 0, position: 0, volume: 0.6, onInterrupt: () => {},
   }
   return {
     onInterrupt: listener => {
@@ -46,14 +47,25 @@ const prepare = engine => {
 const play = async engine => {
   engine.wanted = true
   clearTimeout(engine.suspendTimer)
+  if (isStuck(engine)) rebuild(engine)
   wake(engine)
   await prepare(engine)
   if (!engine.wanted) return scheduleSuspend(engine)
-  await engine.ctx.resume()
+  const { ctx } = engine
+  const resumed = await ctx.resume().then(() => true, () => false)
+  if (engine.ctx !== ctx) return
+  if (!resumed) throw new Error('The audio context did not resume')
   await startElement(engine)
-  if (!engine.wanted) return
-  engine.live = true
+  if (!engine.wanted) return scheduleSuspend(engine)
+  Object.assign(engine, { live: true, heldSince: 0 })
   rampTo(engine, engine.volume, FADE_IN_S)
+}
+
+const isStuck = engine => isHeld(engine.ctx) && engine.heldSince > 0 && performance.now() - engine.heldSince > STUCK_AFTER_MS
+
+const rebuild = engine => {
+  engine.element?.pause()
+  discard(engine)
 }
 
 const unlock = engine => {
@@ -63,6 +75,7 @@ const unlock = engine => {
 
 const wake = engine => {
   if (!engine.ctx) return
+  if (isHeld(engine.ctx)) engine.heldSince ||= performance.now()
   engine.ctx.resume().catch(() => {})
   engine.element?.play().catch(() => {})
 }
@@ -90,7 +103,7 @@ const halt = engine => {
 
 const discard = engine => {
   engine.ctx?.close().catch(() => {})
-  Object.assign(engine, { ctx: null, noise: null, master: null, analyser: null, element: null, fallbackSource: null, booting: null })
+  Object.assign(engine, { ctx: null, noise: null, master: null, analyser: null, element: null, fallbackSource: null, booting: null, heldSince: 0 })
 }
 
 const interrupt = (engine, source) => {
@@ -155,6 +168,7 @@ const boot = async engine => {
   engine.ctx = ctx
   ctx.addEventListener('statechange', () => interrupt(engine, ctx))
   await ctx.audioWorklet.addModule(workletUrl)
+  if (engine.ctx !== ctx) return
   const noise = new AudioWorkletNode(ctx, 'noise', {
     numberOfInputs: 0,
     outputChannelCount: [2],
