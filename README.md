@@ -203,6 +203,10 @@ To add Noise to the home screen of a phone or tablet:
 
 From the home screen, Noise opens full screen, like an app. After the first visit, it works with no internet connection.
 
+On an iPhone or iPad, the home-screen app opens on a black launch screen. iOS keeps the launch screen from the day you add the app, so after a change to the launch images or the status bar style, delete the app from the home screen and add it again. iOS shows one grey frame between the launch screen and the app; this is WebKit bug [`311569`](https://bugs.webkit.org/show_bug.cgi?id=311569), and a page cannot change it.
+
+If Noise is open in Safari and on the home screen at the same time, iOS lets only one of them play. The copy you tap takes the sound, and the other one pauses.
+
 ## Using the app
 
 - [Controls](#controls)
@@ -295,6 +299,8 @@ Screen readers get a **Play** button, a **Noise colour** slider, a **Volume** sl
 
 On a phone with rounded screen corners, the browser reports a safe area at the top or bottom of the screen. When it does, the app moves the timer and wave dots down to the third row, clear of the corners. It also lifts the colour strip by whole rows until it is clear of the home bar, with dim cells in the colours of the strip below it. On most iPhones, the strip moves up two rows. The app measures the safe area again after the page loads and after `500` ms, because some browsers report it late.
 
+On iOS 26, the home-screen app sometimes gets a page `47` px shorter than the screen, and iOS draws nothing below it. The dim rows under the colour strip then show as a black band. A quick turn to landscape and back usually brings them back. An opaque status bar avoids this, but the grid then no longer runs under the clock, so the app keeps the translucent status bar.
+
 On a Mac, the desktop app has no title bar. The timer and wave dots sit on the first row that starts at least `40` px from the top of the window, clear of the window buttons. That is the second row at the default size, and lower in small windows, where the blocks are smaller. `Cmd+W` in the main window closes it and quits the app.
 
 ### Desktop window
@@ -310,6 +316,8 @@ On a Mac, a click on the window while another app is active only brings Noise to
 ### Background play
 
 The sound keeps playing in the background where the browser allows it. The app also gives play and pause actions to the media controls of your device. The desktop app keeps playing when you minimise it.
+
+On an iPhone, a pause from the lock screen stops the sound but keeps the audio engine running silently, because iOS does not restart suspended audio while the phone is locked. Play on the lock screen then starts the sound again at once. When you open the app while it is paused, the engine stops fully.
 
 The grid redraws at most `60` times a second, even on a `120` Hz screen. On a computer with four CPU cores or fewer, it redraws at most `30` times a second. It does not redraw while it is still, hidden, or minimised. Memory stays flat over long sessions.
 
@@ -354,9 +362,9 @@ npm run dev
 | `npm run dist:win`   | Builds the Windows installer                                                                         |
 | `npm run dist:linux` | Builds the Linux AppImages (`x86_64` and `arm64`)                                                    |
 | `./deploy.sh`        | Builds the web app and copies `dist` to the server behind [noise.furey.dev](https://noise.furey.dev) |
-| `npm run icons`      | Makes the app icons from the SVG files in `build/icon-source`                                        |
+| `npm run icons`      | Makes the app icons from the SVG files in `build/icon-source`, and the iPhone and iPad launch images |
 
-The `dist:*` commands write to `release`. `npm run icons` needs `rsvg-convert`, and on a Mac it also makes the `.icns` file with `iconutil`.
+The `dist:*` commands write to `release`. The launch images go to `public/icons/splash`, one per screen size and orientation listed in [`scripts/splash-screens.mjs`](./scripts/splash-screens.mjs); the build adds a `<link>` for each to `index.html`, and leaves them out of the offline cache. `npm run icons` needs `rsvg-convert`, and on a Mac it also makes the `.icns` file with `iconutil`.
 
 ### How it works
 
