@@ -51,7 +51,7 @@ There are five colours of noise. Each colour is a slope: the change in loudness 
 | Blue   | `+3 dB` / octave | `4` |
 | Violet | `+6 dB` / octave | `5` |
 
-Between two colours, the sound is a blend of both. Noise has no accounts, no tracking, and no adverts. It remembers your colour and volume for the next time.
+Between two colours, the sound is a blend of both. Noise has no accounts, no tracking, and no adverts. It remembers your colour, volume, and wave mode for the next time.
 
 ## Download
 
@@ -266,7 +266,7 @@ The timer counts down only while the sound plays. In the last minute, the sound 
   <img src="docs/wave/wave-light.svg" alt="A wave of noise colours moving from brown to violet and back" width="840">
 </picture>
 
-The dot in the top-left corner turns wave mode on and off, and so does the `W` key. The dot is white while wave mode is on, and dim while it is off. `Esc` also turns it off. A pause does not: the dot stays white, and play starts the wave again where it stopped. This holds for every pause, including the lock screen controls, headphone buttons, a phone call, and the end of the sleep timer.
+The dot in the top-left corner turns wave mode on and off, and so does the `W` key. The dot is white while wave mode is on, and dim while it is off. `Esc` also turns it off. A pause does not: the dot stays white, and play starts the wave again where it stopped. This holds for every pause, including the lock screen controls, headphone buttons, a phone call, and the end of the sleep timer. The app remembers wave mode, so if it was on when you closed the app, it is on and paused when you open it again.
 
 If the sound was off when you turned wave mode on, and you touched nothing else, turning wave mode off also stops the sound. If the sound was already playing, or you changed the colour, volume, timer, or play state during wave mode, the sound carries on.
 
@@ -327,7 +327,7 @@ In wave mode, the app gives the browser the next `2` seconds of the wave ahead o
 
 - **No network**: after the page loads, Noise makes no network requests. The desktop app blocks all network requests. A link in the help window opens in your browser, and only when you click it.
 - **No accounts**: there is nothing to sign up for and no tracking.
-- **Local storage**: the app keeps only your colour and volume, in the browser's `localStorage`. The desktop app also keeps the size and position of its window, and the Always on Top setting.
+- **Local storage**: the app keeps only your colour, volume, and whether wave mode is on, in the browser's `localStorage`. The desktop app also keeps the size and position of its window, and the Always on Top setting.
 
 ## Development
 

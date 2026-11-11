@@ -12,7 +12,7 @@ const CLOCK_MS = 1000
 export const createApp = ({ engine, settings, persist }) => {
   const app = {
     engine, persist,
-    state: { playing: false, pos: settings.pos, volume: settings.volume, timer: createTimer(), wave: false },
+    state: { playing: false, pos: settings.pos, volume: settings.volume, timer: createTimer(), wave: Boolean(settings.wave) },
     listeners: new Set(),
     clock: { id: 0, last: 0 },
     tide: { id: 0, wave: null, seconds: 0, last: 0, plan: null },
@@ -20,6 +20,7 @@ export const createApp = ({ engine, settings, persist }) => {
   }
   engine.setPosition(app.state.pos)
   engine.setVolume(app.state.volume)
+  if (app.state.wave) restartTide(app, { quick: true })
   engine.onInterrupt(() => stopAfterInterruption(app))
   return {
     state: app.state,
@@ -162,6 +163,7 @@ const startWave = app => {
   app.waveFromSilence = !state.playing
   state.wave = true
   restartTide(app, { quick: true })
+  save(app)
   if (!state.playing) return setPlaying(app, true)
   syncTide(app)
   notify(app)
@@ -228,6 +230,6 @@ const planTide = app => {
   tide.plan = { wave: tide.wave, volume: state.volume, fading: state.timer.fading, until: tide.seconds + WAVE_PLAN_S }
 }
 
-const save = app => app.persist({ pos: app.state.pos, volume: app.state.volume })
+const save = app => app.persist({ pos: app.state.pos, volume: app.state.volume, wave: app.state.wave })
 
 const notify = app => app.listeners.forEach(listener => listener(app.state))

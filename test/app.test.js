@@ -209,6 +209,31 @@ test('pausing during wave mode keeps wave mode on, and play resumes the wave', (
   mock.timers.reset()
 })
 
+test('wave mode saved from the last session starts paused and plays the wave on play', () => {
+  mock.timers.enable({ apis: ['setInterval'] })
+  const engine = fakeEngine()
+  const saved = []
+  const app = createApp({ engine, settings: { pos: 0, volume: 0.6, wave: true }, persist: settings => saved.push(settings) })
+  assert.equal(app.state.wave, true)
+  assert.equal(app.state.playing, false)
+  app.setPlaying(true)
+  mock.timers.tick(50)
+  assert.equal(engine.calls.filter(call => call.planPosition).length, 1)
+  app.toggleWave()
+  assert.equal(saved.at(-1).wave, false)
+  app.dispose()
+  mock.timers.reset()
+})
+
+test('turning wave mode on saves it', () => {
+  const engine = fakeEngine()
+  const saved = []
+  const app = createApp({ engine, settings: { pos: 0, volume: 0.6 }, persist: settings => saved.push(settings) })
+  app.toggleWave()
+  assert.equal(saved.at(-1).wave, true)
+  app.dispose()
+})
+
 test('an interruption keeps wave mode on', () => {
   const { app, engine } = start()
   app.toggleWave()

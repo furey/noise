@@ -14,22 +14,22 @@ const brokenStorage = {
 
 test('settings round-trip through storage', () => {
   const storage = memoryStorage()
-  assert.equal(saveSettings({ pos: 2.5, volume: 0.45 }, storage), true)
-  assert.deepEqual(loadSettings(storage), { pos: 2.5, volume: 0.45 })
+  assert.equal(saveSettings({ pos: 2.5, volume: 0.45, wave: true }, storage), true)
+  assert.deepEqual(loadSettings(storage), { pos: 2.5, volume: 0.45, wave: true })
 })
 
 test('saved values clamp into range', () => {
   const storage = memoryStorage({ [STORE_KEY]: JSON.stringify({ pos: 9, volume: 4 }) })
-  assert.deepEqual(loadSettings(storage), { pos: 4, volume: 1 })
+  assert.deepEqual(loadSettings(storage), { pos: 4, volume: 1, wave: false })
 })
 
 test('volume never drops below the 10% minimum', () => {
   const storage = memoryStorage({ [STORE_KEY]: JSON.stringify({ pos: -2, volume: 0 }) })
-  assert.deepEqual(loadSettings(storage), { pos: 0, volume: MIN_VOLUME })
+  assert.deepEqual(loadSettings(storage), { pos: 0, volume: MIN_VOLUME, wave: false })
 })
 
 test('missing, corrupt, or wrongly typed storage falls back to defaults', () => {
-  const cases = [undefined, 'not json', 'null', '42', JSON.stringify({ pos: 'x', volume: null })]
+  const cases = [undefined, 'not json', 'null', '42', JSON.stringify({ pos: 'x', volume: null, wave: 'yes' })]
   cases.forEach(value => {
     const storage = memoryStorage(value === undefined ? {} : { [STORE_KEY]: value })
     assert.deepEqual(loadSettings(storage), DEFAULT_SETTINGS)
