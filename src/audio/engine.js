@@ -16,6 +16,7 @@ export const createEngine = () => {
     ctx: null, noise: null, master: null, analyser: null, element: null, fallbackSource: null,
     booting: null, wanted: false, live: false, suspendTimer: 0, heldSince: 0, position: 0, volume: 0.6, onInterrupt: () => {},
   }
+  document.addEventListener('visibilitychange', () => suspendOnReturn(engine))
   return {
     onInterrupt: listener => {
       engine.onInterrupt = listener
@@ -122,7 +123,11 @@ const scheduleSuspend = engine => {
 const suspend = engine => {
   if (!engine.ctx) return
   engine.element?.pause()
-  engine.ctx.suspend()
+  if (!document.hidden) engine.ctx.suspend()
+}
+
+const suspendOnReturn = engine => {
+  if (!document.hidden && !engine.wanted && engine.ctx?.state === 'running') suspend(engine)
 }
 
 const fadeOut = (engine, seconds) => {
