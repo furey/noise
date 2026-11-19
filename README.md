@@ -45,7 +45,7 @@
 
 ## Overview
 
-**Noise** plays steady noise to help you focus or sleep. It can also play music that follows the colour, over the noise or on its own. There are five colours of noise. Each colour is a slope: the change in loudness from one octave to the next. A lower colour has more bass; a higher colour has more treble.
+**Noise** plays steady noise to help you focus or sleep. It can also play music that follows the colour, over the noise or on its own. There are five colours of noise. A lower colour has more bass; a higher colour has more treble.
 
 | Colour | Slope            | Key |
 | ------ | ---------------- | --- |
