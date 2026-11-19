@@ -231,7 +231,7 @@ const SHOTS = {
     })],
   },
   devices: {
-    width: 1920, height: 1080, poster: 5.2,
+    width: 1920, height: 1080, poster: 5.2, opening: 15,
     devices: [
       macDevice({
         scene: { width: 1440, height: 900 }, dpr: 0.55, x: 71, y: 395, monitor: { bezel: 10, radius: 6 },
@@ -279,7 +279,9 @@ const recordShot = async ({ browser, name, shot }) => {
   const song = shot.devices[0].song ? await songAudio(shot.devices[0].song) : null
   const { gainDb } = await renderDemoAudio({ log, start: starts[0] / 1000, duration, out: audio, song })
   const captions = await renderCaptions({ browser, shot, work, captions: timelines[0].captions })
-  await encode({ shot, work, framePng, audio, captions, frameCount, out: path.join(values.out, `${outputName(name)}.mp4`) })
+  const video = path.join(values.out, `${outputName(name)}.mp4`)
+  await encode({ shot, work, framePng, audio, captions, frameCount, out: video })
+  if (shot.opening) await addOpening({ shot, work, framePng, out: video })
   await poster({ shot, work, framePng, frame: Math.round(shot.poster * FPS), out: path.join(values.out, `${outputName(name)}.png`) })
   await fs.rm(work, { recursive: true })
   console.log(`${outputName(name)}: ${frameCount} frames, ${duration.toFixed(2)} s, audio gain ${gainDb.toFixed(1)} dB`)
@@ -521,6 +523,23 @@ const encode = async ({ shot, work, framePng, audio, captions, frameCount, out }
   ])
 }
 
+const addOpening = async ({ shot, work, framePng, out }) => {
+  const still = path.join(work, 'opening.png')
+  const body = path.join(work, 'body.mp4')
+  await poster({ shot, work, framePng, frame: Math.round(shot.opening * FPS), out: still })
+  await fs.rename(out, body)
+  await ffmpeg([
+    '-loop', '1', '-framerate', String(FPS), '-t', String(OPENING_S), '-i', still, '-i', body,
+    '-filter_complex', [
+      '[0:v]format=yuv420p[o]', '[o][1:v]concat=n=2:v=1:a=0[v]',
+      `aevalsrc=0:s=48000:c=stereo:d=${OPENING_S}[s]`, '[s][1:a]concat=n=2:v=0:a=1[a]',
+    ].join(';'),
+    '-map', '[v]', '-map', '[a]',
+    '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', values.crf, '-pix_fmt', 'yuv420p',
+    '-r', String(FPS), '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', out,
+  ])
+}
+
 const poster = async ({ shot, work, framePng, frame, out }) => {
   const stills = shot.devices.flatMap((_, index) => ['-i', path.join(work, `d${index}`, `${String(frame).padStart(5, '0')}.png`)])
   const graph = layerGraph({ shot, inputs: 1 }).replace('format=yuv420p', 'format=rgb24')
@@ -528,6 +547,8 @@ const poster = async ({ shot, work, framePng, frame, out }) => {
 }
 
 const ease = t => 0.5 - Math.cos(Math.PI * Math.min(1, Math.max(0, t))) / 2
+
+const OPENING_S = 0.1
 
 const outputName = name => name === 'devices' ? 'demo' : `demo-${name}`
 

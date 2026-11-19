@@ -404,13 +404,13 @@ npm run preview
 
 Then, in a second terminal:
 
-| Script                                   | Makes                                                                                                                     |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Script                                   | Makes                                                                                                                                         |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `node scripts/record-demo.mjs`           | `demo-desktop`, `demo-ipad`, `demo-iphone`, and `demo` (the three devices together; `.mp4` and `.png`); add `--only search` for `demo-search` |
-| `node scripts/capture-social.mjs`        | `social.png`, the preview picture for links to the repository                                                             |
-| `node scripts/capture-controls.mjs`      | the button pictures in [`docs/controls`](./docs/controls), used in [Buttons](#buttons)                                    |
-| `node scripts/render-icon-gif.mjs`       | `app-icon.gif` and `app-icon.png`                                                                                         |
-| `./scripts/first-open-mockups/render.sh` | the first-open illustrations, rendered from HTML mock-ups with headless Chrome into `scripts/first-open-mockups/out`      |
+| `node scripts/capture-social.mjs`        | `social.png`, the preview picture for links to the repository                                                                                 |
+| `node scripts/capture-controls.mjs`      | the button pictures in [`docs/controls`](./docs/controls), used in [Buttons](#buttons)                                                        |
+| `node scripts/render-icon-gif.mjs`       | `app-icon.gif` and `app-icon.png`                                                                                                             |
+| `./scripts/first-open-mockups/render.sh` | the first-open illustrations, rendered from HTML mock-ups with headless Chrome into `scripts/first-open-mockups/out`                          |
 
 The `demo-search` video plays a song excerpt from [`scripts/demo-music`](./scripts/demo-music) through a stand-in for the desktop app's music driver; [`CREDITS.md`](./scripts/demo-music/CREDITS.md) there names the track and its licence. Add `--only desktop,iphone` to `record-demo.mjs` to record only some of the videos, and `--out <folder>` to write them somewhere other than `docs/media`. The videos in this README are GitHub attachments. To replace one, run `./scripts/upload-demo.sh docs/media/<name>.mp4` and put the URL it prints in this README. The script uses the upload endpoint behind GitHub's comment box, with your `gh` login; if GitHub retires it, drag the `.mp4` into any GitHub comment box instead. The [`docs-media`](https://github.com/furey/noise/releases/tag/docs-media) release keeps a copy of each file; the icon at the top of this README loads from it. The sound in each video is not a recording: the script runs the noise and music worklets in Node.js and follows the same taps and drags as the video, with the same noise, music, and volume levels as the app. In the browser, the harness runs both worklets too, so the picture follows the music as well as the noise. The desktop videos load the app in an iframe on a drawn macOS desktop (`scripts/mac-scene.mjs`), with the app's Mac title-bar layout turned on. The recording harness runs the app's timers, animation frames, and clock on a virtual clock, gives `Math.random` a fixed seed, and turns off Chrome's GPU, so each video is the same on every run.
 
