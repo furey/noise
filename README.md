@@ -21,7 +21,7 @@
 </p>
 
 > [!TIP]<br>
-> Prefer the retro arcade look? Try [Noise 8bit](https://github.com/furey/noise-8bit).
+> Prefer it retro? Try [Noise 8bit](https://github.com/furey/noise-8bit).
 
 <p align="center">
   <a href="https://youtu.be/QDL49afHRXk"><img src="https://github.com/furey/noise/releases/download/docs-media/video-poster.png" alt="Noise video poster: five colours of noise for focus and sleep" width="1280"/></a><br/>
