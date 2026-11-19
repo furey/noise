@@ -1,0 +1,128 @@
+<!--
+
+  ▄█▀▀█▄          NOISE
+ ██    ██         Five colours of noise for focus and sleep.
+       ██    ██   https://noise.furey.dev
+        ▀█▄▄█▀    by @furey • https://about.me/jamesfurey
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ■ wave mode              ♫ music               sleep timer ■ ■ ■ │
+│                                                                  │
+│                              SYNTH                               │
+│                tap ........... play / pause                      │
+│                drag up/down .. volume                            │
+│                                                                  │
+│━━━━━━━━━━━━━━━━━━━━━━━━━ COLOUR SLIDER ━━━━━━━━━━━━━━━━━━━━━━━━━━│
+│       tap or drag ... brown → pink → white → blue → violet       │
+└──────────────────────────────────────────────────────────────────┘
+
+POINTER AND TOUCH
+  tap synth ................... play; pause while playing
+  drag synth up or down ....... volume, while playing
+  tap or drag colour slider ... colour; plays if stopped
+  tap top-left button ......... wave mode on or off
+  tap top-middle button ....... music: Liquid alone, Liquid,
+                                Helix alone, Helix, off
+  tap top-right button ........ sleep timer: 30 → 20 → 10min → off
+
+KEYS
+  Space ...... play or pause
+  1 – 5 ...... brown, pink, white, blue, violet
+  ← → ........ colour, a quarter step
+  ↑ ↓ ........ volume, 10% step
+  T .......... sleep timer
+  W .......... wave mode on or off
+  M .......... next music step
+  ? .......... help
+  H .......... auto-hide controls [desktop]
+  / .......... search music [desktop] [music]
+  ⌘← ⌘→ ...... previous or next song; Ctrl on Windows, Linux [desktop] [music]
+  Esc ........ stop the sound and wave mode
+
+WAVE MODE
+  The colour rises from brown to a random crest, holds, and falls
+  back: 4.5–8s up, 5–9s down. The volume swells with it.
+  A colour change moves the wave there. A pause does not end it.
+  Started from silence, wave mode off also stops the sound.
+
+MUSIC
+  Liquid is a soft synth; Helix is an organ that seems to rise
+  forever. Both play new notes all the time, and follow the
+  colour: low and dark at brown, high and bright at violet.
+
+SLEEP TIMER
+  The sound fades out over the last 60s, then stops.
+
+DESKTOP APP [desktop]
+  Mac, Windows, and Linux. The app makes no network requests. [desktop]
+  View → Always on Top keeps the window above other windows.
+  View → Auto-Hide Controls (H) fades the controls out while
+  sound plays and the pointer is outside the window.
+  Both start on; untick them in the View menu to turn them off.
+  View → Park Window (⌥⌘P, Ctrl+Alt+P) shrinks the window into the
+  lower-right corner; press it again to restore the window.
+  View → Reset Window (⌥⌘R, Ctrl+Alt+R) puts the window back at
+  its first size, centred on the screen.
+  The Controls menu has every control above, with its key.
+  With a music driver, / or Controls → Search Music… finds a song: [music]
+  Enter plays the best match, ↑ ↓ choose another, Esc closes. [music]
+  While it plays, the colour follows its sound and ← → jump 10s. [music]
+  The music driver alone reaches the network. [music]
+  Help → Noise Help (Cmd+? or F1) also shows this text.
+  Cmd+W (Mac) closes the window.
+
+SOURCE
+  https://github.com/furey/noise · PolyForm Noncommercial 1.0.0
+  Free, with the source code public. The names and icons are not for other apps.
+
+THE OTHER APP
+  Prefer the retro arcade look? Try Noise 8bit:
+  https://github.com/furey/noise-8bit
+
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'sha256-coMntPn1G0/sp126A+3P/ZUj6PlWIuag/nb33eGJw30='; img-src 'self'; media-src 'self'; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#050505">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Noise">
+<meta name="description" content="Five colours of noise for focus and sleep.">
+<title>Noise</title>
+<style>html,body{background:#050505}</style>
+<link rel="icon" href="icons/favicon.svg?v=4" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="stylesheet" href="/src/styles.css">
+<script type="module" src="/src/main.js"></script>
+</head>
+<body>
+<div class="layers" aria-hidden="true">
+  <div class="layer" data-id="brown"></div>
+  <div class="layer" data-id="pink"></div>
+  <div class="layer" data-id="white"></div>
+  <div class="layer" data-id="blue"></div>
+  <div class="layer" data-id="violet"></div>
+  <div class="layer idle" id="idle"></div>
+</div>
+<main id="surface">
+  <canvas id="water" aria-hidden="true"></canvas>
+  <canvas id="spec" aria-hidden="true"></canvas>
+  <button class="sr" id="play" type="button" aria-label="Play"></button>
+  <button class="hit" id="wave" type="button" aria-label="Wave mode" aria-pressed="false"></button>
+  <button class="hit" id="music" type="button" aria-label="Music off"></button>
+  <button class="hit" id="timer" type="button" aria-label="Timer off" aria-pressed="false"></button>
+  <label class="sr" for="slope">Noise colour</label>
+  <input class="sr" id="slope" type="range" min="0" max="4" step="0.25" value="0">
+  <label class="sr" for="volume">Volume</label>
+  <input class="sr" id="volume" type="range" min="0.1" max="1" step="0.1" value="0.6">
+</main>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="insets" aria-hidden="true"></div>
+</body>
+</html>
