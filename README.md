@@ -28,7 +28,7 @@
   <a href="https://youtu.be/QDL49afHRXk">Watch on YouTube</a>
 </p>
 
-<https://github.com/user-attachments/assets/fb4d6daa-189e-4ff4-be47-a6188cc04df8>
+<https://github.com/user-attachments/assets/7762bb39-d76e-4df4-985c-fc071bf365fc>
 
 ## Contents
 
