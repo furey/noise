@@ -5,13 +5,17 @@ Copyright (C) 2026 James Furey <https://about.me/jamesfurey>
 
 Required Notice: Copyright (C) 2026 James Furey (https://about.me/jamesfurey)
 
-Noise is free, with the source code public. It is licensed under the
-PolyForm Noncommercial License 1.0.0, below: you may use, copy, change,
-and share it for any noncommercial purpose.
+Noise is licensed under the PolyForm Noncommercial License 1.0.0,
+below: you may use, copy, change, and share it for any noncommercial
+purpose.
 
-Names and icons: this license covers the code only. It gives no right
-to use the names "Noise" or "Noise 8bit", or the app icons, for any
-other app, product, or service.
+Icons: the app icons are not covered by this license. All rights
+reserved. They are the files build/icon.icns, build/icon.ico, and
+build/icon.png, and the files in build/icon-source/, build/icons/, and
+public/icons/.
+
+Changed versions: if you share a changed version, give it a different
+name, and do not present it as made or endorsed by James Furey.
 
 ==================================================================
 
