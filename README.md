@@ -423,7 +423,7 @@ For a pushed version tag (e.g. `1.0.0`), a second job waits up to 30 minutes for
 This project:
 
 - Is licensed under the [PolyForm Noncommercial License 1.0.0](./LICENSE.txt) (`PolyForm-Noncommercial-1.0.0`): free to use, copy, change, and share for any noncommercial purpose.
-- Gives no right to use the names "Noise" or "Noise 8bit", or the app icons, for other apps.
+- Licenses the code only. The names "Noise" and "Noise 8bit" and the app icons are not licensed for reuse.
 - Is written with the assistance of AI and may contain errors.
 - Is provided as-is with no warranty. Use it at your own risk.
 
