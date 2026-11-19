@@ -406,7 +406,7 @@ Then, in a second terminal:
 
 | Script                                   | Makes                                                                                                                     |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `node scripts/record-demo.mjs`           | `demo-desktop`, `demo-ipad`, `demo-iphone`, and `demo-devices` (`.mp4` and `.png`); add `--only search` for `demo-search` |
+| `node scripts/record-demo.mjs`           | `demo-desktop`, `demo-ipad`, `demo-iphone`, and `demo` (the three devices together; `.mp4` and `.png`); add `--only search` for `demo-search` |
 | `node scripts/capture-social.mjs`        | `social.png`, the preview picture for links to the repository                                                             |
 | `node scripts/capture-controls.mjs`      | the button pictures in [`docs/controls`](./docs/controls), used in [Buttons](#buttons)                                    |
 | `node scripts/render-icon-gif.mjs`       | `app-icon.gif` and `app-icon.png`                                                                                         |

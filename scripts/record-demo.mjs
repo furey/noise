@@ -279,10 +279,10 @@ const recordShot = async ({ browser, name, shot }) => {
   const song = shot.devices[0].song ? await songAudio(shot.devices[0].song) : null
   const { gainDb } = await renderDemoAudio({ log, start: starts[0] / 1000, duration, out: audio, song })
   const captions = await renderCaptions({ browser, shot, work, captions: timelines[0].captions })
-  await encode({ shot, work, framePng, audio, captions, frameCount, out: path.join(values.out, `demo-${name}.mp4`) })
-  await poster({ shot, work, framePng, frame: Math.round(shot.poster * FPS), out: path.join(values.out, `demo-${name}.png`) })
+  await encode({ shot, work, framePng, audio, captions, frameCount, out: path.join(values.out, `${outputName(name)}.mp4`) })
+  await poster({ shot, work, framePng, frame: Math.round(shot.poster * FPS), out: path.join(values.out, `${outputName(name)}.png`) })
   await fs.rm(work, { recursive: true })
-  console.log(`demo-${name}: ${frameCount} frames, ${duration.toFixed(2)} s, audio gain ${gainDb.toFixed(1)} dB`)
+  console.log(`${outputName(name)}: ${frameCount} frames, ${duration.toFixed(2)} s, audio gain ${gainDb.toFixed(1)} dB`)
 }
 
 const songAudio = async ({ file }) => {
@@ -528,5 +528,7 @@ const poster = async ({ shot, work, framePng, frame, out }) => {
 }
 
 const ease = t => 0.5 - Math.cos(Math.PI * Math.min(1, Math.max(0, t))) / 2
+
+const outputName = name => name === 'devices' ? 'demo' : `demo-${name}`
 
 await main()

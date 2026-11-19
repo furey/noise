@@ -8,10 +8,10 @@ set -euo pipefail
 # hits, authenticated with `gh auth token`. If GitHub retires it, fall back to
 # dragging the file into any comment box by hand.
 #
-#   ./scripts/upload-demo.sh docs/media/demo-devices.mp4
+#   ./scripts/upload-demo.sh docs/media/demo.mp4
 
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-FILE="${1:-$REPO_ROOT/docs/media/demo-devices.mp4}"
+FILE="${1:-$REPO_ROOT/docs/media/demo.mp4}"
 REPOSITORY="${REPOSITORY:-furey/noise}"
 
 REPO_ID=$(gh api "repos/$REPOSITORY" --jq .id)
