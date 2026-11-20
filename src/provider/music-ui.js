@@ -1,5 +1,5 @@
 import { paletteToneAt } from '../ui/colours.js'
-import { ALBUM_LABEL, clockText, createMemo, lengthText, mergeRows, trackText } from './results.js'
+import { ALBUM_LABEL, TRACK_SEPARATOR, clockText, createMemo, lengthText, mergeRows, separatorAt, trackText } from './results.js'
 
 export const LIVE_DELAY_MS = 250
 export const LIVE_MIN_CHARS = 2
@@ -305,7 +305,7 @@ const rowNode = (ui, { row, index, playing }) => {
   item.append(
     span(ui.doc, 'music-mark'),
     ...albumChip(ui.doc, row.track),
-    textNode(ui.doc, { text: trackText(row.track), hits: new Set(row.hits) }),
+    textNode(ui.doc, { text: trackText(row.track), hits: new Set(row.hits), sepAt: separatorAt(row.track) }),
     span(ui.doc, 'music-dot'),
     span(ui.doc, 'music-time', lengthText(row.track)),
   )
@@ -315,15 +315,15 @@ const rowNode = (ui, { row, index, playing }) => {
 
 const albumChip = (doc, track) => track.kind === 'album' ? [span(doc, 'music-chip', ALBUM_LABEL)] : []
 
-const textNode = (doc, { text, hits }) => {
+const textNode = (doc, { text, hits, sepAt }) => {
   const outer = span(doc, 'music-text')
   const scroll = span(doc, 'music-scroll')
-  appendMarked(doc, scroll, { text, hits })
+  appendMarked(doc, scroll, { text, hits, sepAt })
   outer.append(scroll)
   return outer
 }
 
-const appendMarked = (doc, parent, { text, hits }) => {
+const appendMarked = (doc, parent, { text, hits, sepAt = -1 }) => {
   let run = ''
   let bold = false
   const flush = () => {
@@ -331,7 +331,13 @@ const appendMarked = (doc, parent, { text, hits }) => {
     parent.append(bold ? Object.assign(doc.createElement('b'), { textContent: run }) : doc.createTextNode(run))
     run = ''
   }
+  const inSeparator = index => sepAt >= 0 && index >= sepAt && index < sepAt + TRACK_SEPARATOR.length
   ;[...text].forEach((char, index) => {
+    if (inSeparator(index)) {
+      if (index !== sepAt) return
+      flush()
+      return parent.append(span(doc, 'music-sep', TRACK_SEPARATOR))
+    }
     const hit = hits.has(index)
     if (hit !== bold) flush()
     bold = hit
@@ -344,7 +350,9 @@ const showTrack = (ui, track) => {
   ui.barTrackKey = trackKey(track)
   const text = track ? trackText(track) : ''
   ui.nodes.barLayers.forEach(layer => {
-    layer.querySelector('.music-scroll').textContent = text
+    const scroll = layer.querySelector('.music-scroll')
+    scroll.replaceChildren()
+    appendMarked(ui.doc, scroll, { text, hits: new Set(), sepAt: separatorAt(track) })
   })
   ui.nodes.bar.setAttribute('aria-valuetext', text)
   showInSession(track)
@@ -419,7 +427,7 @@ const marquee = (doc, outer, wanted) => {
   if (!overflowing || !wanted) return
   const copy = span(doc, 'music-copy')
   copy.setAttribute('aria-hidden', 'true')
-  copy.textContent = scroll.textContent
+  copy.append(...[...scroll.childNodes].map(node => node.cloneNode(true)))
   scroll.append(copy)
   const distance = width + MARQUEE_GAP_PX
   outer.style.setProperty('--marquee-distance', `${distance}px`)

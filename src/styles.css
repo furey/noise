@@ -168,6 +168,7 @@ html.desktop.mac .hit { -webkit-app-region: no-drag }
 .music-text { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap }
 .music-scroll { display: inline-block; white-space: nowrap }
 .music-copy { padding-left: var(--marquee-gap) }
+.music-sep { margin: 0 .3em; font-weight: 700; opacity: .55; white-space: pre }
 .music-text.overflowing { mask-image: linear-gradient(to right, #000 calc(100% - 28 * var(--ui-px)), transparent) }
 .music-text.scrolling { mask-image: linear-gradient(to right, transparent, #000 calc(20 * var(--ui-px)), #000 calc(100% - 28 * var(--ui-px)), transparent) }
 .music-text.scrolling .music-scroll { animation: music-marquee var(--marquee-duration) linear 1.5s infinite }

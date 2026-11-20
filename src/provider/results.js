@@ -4,7 +4,11 @@ export const ROW_LIMIT = 5
 export const MEMO_LIMIT = 50
 export const MEMO_FOR_MS = 10 * 60 * 1000
 
-export const trackText = track => [track.title, track.artist].filter(Boolean).join(' · ')
+export const TRACK_SEPARATOR = ' · '
+
+export const trackText = track => [track.title, track.artist].filter(Boolean).join(TRACK_SEPARATOR)
+
+export const separatorAt = track => track?.title && track?.artist ? track.title.length : -1
 
 export const lengthText = track => {
   if (track.kind === 'album') return track.trackCount ? songCountText(track.trackCount) : ''
