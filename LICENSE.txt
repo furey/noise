@@ -17,6 +17,10 @@ public/icons/.
 Changed versions: if you share a changed version, give it a different
 name, and do not present it as made or endorsed by James Furey.
 
+Font: public/fonts/instrument-sans.woff2 is Instrument Sans, licensed
+under the SIL Open Font License 1.1 (public/fonts/OFL.txt), not under
+this license.
+
 ==================================================================
 
 # PolyForm Noncommercial License 1.0.0

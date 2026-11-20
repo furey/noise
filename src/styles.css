@@ -1,3 +1,5 @@
+@font-face { font-family: 'Instrument Sans'; src: url('/fonts/instrument-sans.woff2') format('woff2'); font-weight: 100 900; font-display: block; }
+
 :root {
   --brown-g: linear-gradient(0deg, #744210, #b7791f, #ecc94b);
   --pink-g: linear-gradient(0deg, #b83280, #ed64a6, #fbb6ce);
@@ -120,7 +122,7 @@ html.desktop.mac .hit { -webkit-app-region: no-drag }
   inset: 0;
   pointer-events: none;
   opacity: var(--music-chrome, 1);
-  font: 500 calc(17 * var(--ui-px))/1.2 -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font: 500 calc(17 * var(--ui-px))/1.2 'Instrument Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 .music-field, .music-bar, .music-list {
   position: absolute;

@@ -426,6 +426,7 @@ This project:
 
 - Is licensed under the [PolyForm Noncommercial License 1.0.0](./LICENSE.txt) (`PolyForm-Noncommercial-1.0.0`): free to use, copy, change, and share for any noncommercial purpose.
 - Licenses the code only; the app icons are not licensed for reuse. If you share a changed version, give it a different name.
+- Bundles the [Instrument Sans](https://github.com/Instrument/instrument-sans) font, licensed under the [SIL Open Font License 1.1](./public/fonts/OFL.txt).
 - Is written with the assistance of AI and may contain errors.
 - Is provided as-is with no warranty. Use it at your own risk.
 
