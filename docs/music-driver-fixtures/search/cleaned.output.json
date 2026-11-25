@@ -1,0 +1,21 @@
+[
+  {
+    "id": "rain-on-tin",
+    "title": "  Rain   on Tin ",
+    "artist": "Field Notes",
+    "durationS": 163.6
+  },
+  {
+    "id": "../escape",
+    "title": "Unsafe id"
+  },
+  {
+    "id": "no-title",
+    "title": ""
+  },
+  {
+    "id": "rain-loop",
+    "title": "Rain Loop",
+    "durationS": -1
+  }
+]

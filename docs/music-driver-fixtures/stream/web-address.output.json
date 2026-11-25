@@ -1,0 +1,14 @@
+{
+  "url": "https://media.example.com/audio/evening-bell-01.m4a?token=abc123",
+  "headers": {
+    "Referer": "https://media.example.com/"
+  },
+  "mime": "audio/mp4",
+  "expiresAt": 1795400000000,
+  "track": {
+    "id": "evening-bell-01",
+    "title": "Evening Bell",
+    "artist": "The Example Band",
+    "durationS": 205
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "album": {
+    "id": "quiet-hours",
+    "title": "Quiet Hours",
+    "artist": "The Example Band",
+    "durationS": 0,
+    "kind": "album",
+    "trackCount": 4
+  }
+}

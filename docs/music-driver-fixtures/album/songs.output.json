@@ -1,0 +1,26 @@
+[
+  {
+    "id": "quiet-hours-1",
+    "title": "First Light",
+    "artist": "The Example Band",
+    "durationS": 184
+  },
+  {
+    "id": "quiet-hours-2",
+    "title": "Quiet Hours",
+    "artist": "The Example Band",
+    "durationS": 196
+  },
+  {
+    "id": "quiet-hours-3",
+    "title": "Low Tide",
+    "artist": "The Example Band",
+    "durationS": 204
+  },
+  {
+    "id": "quiet-hours-4",
+    "title": "Evening Bell",
+    "artist": "The Example Band",
+    "durationS": 205
+  }
+]

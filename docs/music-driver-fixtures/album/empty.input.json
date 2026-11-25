@@ -1,0 +1,10 @@
+{
+  "album": {
+    "id": "empty-album",
+    "title": "Empty",
+    "artist": "",
+    "durationS": 0,
+    "kind": "album",
+    "trackCount": 0
+  }
+}

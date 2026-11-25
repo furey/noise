@@ -1,0 +1,6 @@
+{
+  "url": "http://192.168.1.20/remote-1.mp3",
+  "headers": {},
+  "mime": "audio/mpeg",
+  "expiresAt": 0
+}

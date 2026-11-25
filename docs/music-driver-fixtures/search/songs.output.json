@@ -1,0 +1,20 @@
+[
+  {
+    "id": "evening-bell-01",
+    "title": "Evening Bell",
+    "artist": "The Example Band",
+    "durationS": 205
+  },
+  {
+    "id": "evening-bell-live",
+    "title": "Evening Bell (Live)",
+    "artist": "The Example Band",
+    "durationS": 251
+  },
+  {
+    "id": "bell-tower-7",
+    "title": "Bell Tower",
+    "artist": "Sample Quartet",
+    "durationS": 188
+  }
+]
