@@ -10,8 +10,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/furey/noise/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/furey/noise.svg?style=flat-square&color=d69e2e&label=release"/></a>
-  <img alt="Downloads" src="https://img.shields.io/github/downloads/furey/noise/total.svg?style=flat-square&color=ed64a6"/>
   <img alt="Mac, Windows, Linux, Web" src="https://img.shields.io/badge/runs%20on-Mac%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-3b82f6.svg?style=flat-square"/>
   <img alt="License: PolyForm Noncommercial 1.0.0" src="https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-8b5cf6.svg?style=flat-square"/>
 </p>
