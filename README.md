@@ -26,7 +26,7 @@
   <a href="https://youtu.be/w4obbxRo20I">Watch on YouTube</a>
 </p>
 
-<https://github.com/user-attachments/assets/7762bb39-d76e-4df4-985c-fc071bf365fc>
+<https://github.com/user-attachments/assets/a008c791-e887-4db2-9d49-d7e7d3f8516d>
 
 ## Contents
 
@@ -245,15 +245,15 @@ The timer counts down only while the sound plays, and the sound fades out over t
 
 The desktop app:
 
-<https://github.com/user-attachments/assets/872f02e1-9816-49fa-bde4-2840069097b2>
+<https://github.com/user-attachments/assets/df50d12d-4ace-4cf3-b143-76c6f353d1b1>
 
 On a tablet:
 
-<https://github.com/user-attachments/assets/b237829a-0c25-40ee-b4f7-33c86f9a8a52>
+<https://github.com/user-attachments/assets/2816d15b-2b10-4f01-bdb8-5c45e91f8e06>
 
 On a phone:
 
-<https://github.com/user-attachments/assets/ffe00bfa-b242-4a42-8376-020a3651cd43>
+<https://github.com/user-attachments/assets/7ce19aff-4ed9-4476-b65c-21adb12d425a>
 
 ### Music
 
@@ -293,7 +293,7 @@ Wave mode moves the colour like waves on a beach: it rises slowly from brown, th
 
 The desktop app can also play songs by real artists. Add a [music driver](docs/music-driver.md), then press `/` or choose **Controls → Search Music…**. Type an artist or a title, and press `Enter` to play the best match. A search can also return albums, which play in order and repeat. While a song plays, the built-in music and wave mode pause, and the colour follows the song's sound. Press `Cmd+→` for the next song and `Cmd+←` for the previous one (`Ctrl` on Windows and Linux); after the first `3` seconds, `Cmd+←` restarts the song.
 
-<https://github.com/user-attachments/assets/8f5dc7f9-5570-4709-8dfd-30923ec26928>
+<https://github.com/user-attachments/assets/14521f3f-953d-4aac-af21-1a2f876e2b60>
 
 Music in this video: "Floating Cities" by Kevin MacLeod ([incompetech.com](https://incompetech.com)), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
